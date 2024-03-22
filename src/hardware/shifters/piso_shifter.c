@@ -1,5 +1,6 @@
 
 #include "piso_shifter.h"
+#include <common_macros.h>
 #include <hardware/gpio.h>
 
 #include "FreeRTOS.h"
@@ -7,30 +8,30 @@
 
 void piso_shifter_init(PISO_Config* cfg) {
     // Init the pins
-    gpio_init_mask( cfg->ser_pin |
-                    cfg->ce_pin  |
-                    cfg->pe_pin  |
-                    cfg->clk_pin |
-                    cfg->clr_pin);
+    gpio_init_mask( _BV(cfg->ser_pin) |
+                    _BV(cfg->ce_pin)  |
+                    _BV(cfg->pe_pin)  |
+                    _BV(cfg->clk_pin) |
+                    _BV(cfg->clr_pin));
 
     // Set every pin to output, except the ser_pin, which is input
-    gpio_set_dir_masked(cfg->ser_pin |
-                    cfg->ce_pin  |
-                    cfg->pe_pin  |
-                    cfg->clk_pin |
-                    cfg->clr_pin,
-                    cfg->ce_pin  |
-                    cfg->pe_pin  |
-                    cfg->clk_pin |
-                    cfg->clr_pin);
+    gpio_set_dir_masked(_BV(cfg->ser_pin) |
+                    _BV(cfg->ce_pin)  |
+                    _BV(cfg->pe_pin)  |
+                    _BV(cfg->clk_pin) |
+                    _BV(cfg->clr_pin),
+                    _BV(cfg->ce_pin)  |
+                    _BV(cfg->pe_pin)  |
+                    _BV(cfg->clk_pin) |
+                    _BV(cfg->clr_pin));
 
     // Set /CE and /PE to high, all the rest to low
-    gpio_put_masked(cfg->ce_pin  |
-                    cfg->pe_pin  |
-                    cfg->clk_pin |
-                    cfg->clr_pin,
-                    cfg->ce_pin  |
-                    cfg->pe_pin);
+    gpio_put_masked(_BV(cfg->ce_pin)  |
+                    _BV(cfg->pe_pin)  |
+                    _BV(cfg->clk_pin) |
+                    _BV(cfg->clr_pin),
+                    _BV(cfg->ce_pin)  |
+                    _BV(cfg->pe_pin));
 
     vTaskDelay(500);
 
@@ -42,7 +43,7 @@ uint64_t piso_shifter_get(PISO_Config* cfg) {
     uint64_t data = 0;
 
     // Enable clock and inputs, then set clock to low
-    gpio_put_masked(cfg->ce_pin | cfg->pe_pin | cfg->clk_pin, 0);
+    gpio_put_masked(_BV(cfg->ce_pin) | _BV(cfg->pe_pin) | _BV(cfg->clk_pin), 0);
     vTaskDelay(10);
 
     // Set the clock to high
@@ -62,7 +63,7 @@ uint64_t piso_shifter_get(PISO_Config* cfg) {
     }
 
     // Disable the clock and inputs
-    gpio_put_masked(cfg->ce_pin | cfg->pe_pin, 0xFFFFFFFF);
+    gpio_put_masked(_BV(cfg->ce_pin) | _BV(cfg->pe_pin), 0xFFFFFFFF);
 
     return data;
 }

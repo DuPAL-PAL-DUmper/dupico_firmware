@@ -29,6 +29,8 @@
         "ff_stdio.h": "c",
         "task.h": "c",
         "semphr.h": "c",
-        "util.h": "c"
+        "util.h": "c",
+        "gpio.h": "c",
+        "common_macros.h": "c"
     }
 }
