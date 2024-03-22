@@ -1,6 +1,7 @@
 # Add subdirectories
 add_subdirectory(ssd1306_i2c)
 add_subdirectory(sdcard)
+add_subdirectory(shifters)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
