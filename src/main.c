@@ -40,7 +40,7 @@ void vLaunch( void) {
     TaskHandle_t task;
     xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, TEST_TASK_PRIORITY, &task);
 
-#if NO_SYS && configUSE_CORE_AFFINITY && configNUM_CORESconfigNUMBER_OF_CORES > 1
+#if NO_SYS && configUSE_CORE_AFFINITY && configNUMBER_OF_CORES > 1
     // we must bind the main task to one core (well at least while the init is called)
     // (note we only do this in NO_SYS mode, because cyw43_arch_freertos
     // takes care of it otherwise)
