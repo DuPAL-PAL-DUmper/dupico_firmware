@@ -40,7 +40,7 @@ void vLaunch( void) {
     TaskHandle_t task;
     xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, TEST_TASK_PRIORITY, &task);
 
-#if NO_SYS && configUSE_CORE_AFFINITY && configNUM_CORES > 1
+#if NO_SYS && configUSE_CORE_AFFINITY && configNUM_CORESconfigNUMBER_OF_CORES > 1
     // we must bind the main task to one core (well at least while the init is called)
     // (note we only do this in NO_SYS mode, because cyw43_arch_freertos
     // takes care of it otherwise)
@@ -56,23 +56,10 @@ int main() {
     sys_init();
 
     /* Configure the hardware ready to run the demo. */
-    const char *rtos_name;
-#if ( portSUPPORT_SMP == 1 )
-    rtos_name = "FreeRTOS SMP";
-#else
-    rtos_name = "FreeRTOS";
-#endif
-
-#if ( portSUPPORT_SMP == 1 ) && ( configNUM_CORES == 2 )
-    printf("Starting %s on both cores:\n", rtos_name);
+#if ( FREE_RTOS_KERNEL_SMP == 1 ) && ( configNUMBER_OF_CORES == 2 )
     vLaunch();
-#elif ( RUN_FREERTOS_ON_CORE == 1 )
-    printf("Starting %s on core 1:\n", rtos_name);
-    multicore_launch_core1(vLaunch);
-    while (true);
 #else
-    printf("Starting %s on core 0:\n", rtos_name);
-    vLaunch();
+#error "SMP not enabled!"
 #endif
     return 0;
 }
