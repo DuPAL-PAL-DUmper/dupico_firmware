@@ -1,0 +1,3 @@
+[submodule "external/FreeRTOS-FAT-CLI-for-RPi-Pico"]
+	path = external/FreeRTOS-FAT-CLI-for-RPi-Pico
+	url = https://github.com/carlk3/FreeRTOS-FAT-CLI-for-RPi-Pico.git
