@@ -12,7 +12,7 @@ if (FREERTOS_KERNEL_PATH OR DEFINED ENV{FREERTOS_KERNEL_PATH})
 endif()
 
 # Set name of project (as PROJECT_NAME) and C/C   standards
-project(blink C CXX ASM)
+project(dupico C CXX ASM)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 20)
 
