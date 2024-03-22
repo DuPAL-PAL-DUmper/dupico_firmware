@@ -20,7 +20,5 @@ void sys_init(void) {
 
     // Initialize chosen serial port
     stdio_init_all();
-
-    //sys_i2c_init();
-    //SSD1306_init();
+    sys_i2c_init();
 }
