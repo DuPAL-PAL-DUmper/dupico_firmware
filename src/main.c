@@ -14,12 +14,7 @@
 
 #include <sys/sys.h>
 
-#ifndef RUN_FREERTOS_ON_CORE
-#define RUN_FREERTOS_ON_CORE 0
-#endif
-
-#define TEST_TASK_PRIORITY				( tskIDLE_PRIORITY + 2UL )
-#define BLINK_TASK_PRIORITY				( tskIDLE_PRIORITY + 1UL )
+#define MAIN_TASK_PRIORITY				( tskIDLE_PRIORITY + 1UL )
 
 
 const uint8_t led_pin = LED_PIN;
@@ -38,7 +33,7 @@ void main_task(__unused void *params) {
 
 void vLaunch( void) {
     TaskHandle_t task;
-    xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, TEST_TASK_PRIORITY, &task);
+    xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, MAIN_TASK_PRIORITY, &task);
 
 #if NO_SYS && configUSE_CORE_AFFINITY && configNUMBER_OF_CORES > 1
     // we must bind the main task to one core (well at least while the init is called)
