@@ -19,6 +19,7 @@ target_link_libraries(${PROJECT_NAME}
 add_subdirectory(sys)
 add_subdirectory(hardware)
 add_subdirectory(utils)
+add_subdirectory(tasks)
 
 # Create map/bin/hex/uf2 files
 pico_add_extra_outputs(${PROJECT_NAME})

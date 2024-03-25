@@ -31,7 +31,7 @@ void main_task(__unused void *params) {
     }
 }
 
-void vLaunch( void) {
+void vLaunch(void) {
     TaskHandle_t task;
     xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, MAIN_TASK_PRIORITY, &task);
 
