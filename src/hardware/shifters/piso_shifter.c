@@ -24,6 +24,9 @@ void piso_shifter_init(const PISO_Config* cfg) {
                     _BV(cfg->pe_pin)  |
                     _BV(cfg->clk_pin) |
                     _BV(cfg->clr_pin));
+    
+    // Set a pullup on the input
+    gpio_pull_up(cfg->ser_pin);
 
     // Set /CE and /PE to high, all the rest to low
     gpio_put_masked(_BV(cfg->ce_pin)  |
@@ -57,7 +60,7 @@ uint64_t piso_shifter_get(const PISO_Config* cfg) {
         gpio_put(cfg->clk_pin, true); // Clock out the data
         vTaskDelay(10);
         
-        data |= gpio_get(cfg->ser_pin) ? (1 << idx) : 0;
+        data |= gpio_get(cfg->ser_pin) ? (1ULL << idx) : 0;
         
         gpio_put(cfg->clk_pin, false); 
     }

@@ -36,7 +36,7 @@ void consumer_task(__unused void *params) {
         printf("Consumer task loop\n");
         shifter_io_task_cmd cmd = {
             .cmd = WRITE,
-            .param = 0
+            .param = 0xF0FA
         };
         uint64_t val;
 
