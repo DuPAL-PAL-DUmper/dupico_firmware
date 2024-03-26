@@ -1,6 +1,8 @@
 target_sources(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/shifter_io_task.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmd_executor_task.c
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/shifter_io_task.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmd_executor_task.h
 )

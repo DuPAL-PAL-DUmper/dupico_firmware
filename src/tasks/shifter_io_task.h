@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 
-#include <hardware/shifters/piso_shifter.h>
-#include <hardware/shifters/sipo_shifter.h>
-
 #include <FreeRTOS.h>
 #include <queue.h>
+
+#include <hardware/shifters/piso_shifter.h>
+#include <hardware/shifters/sipo_shifter.h>
 
 typedef enum {
     READ,

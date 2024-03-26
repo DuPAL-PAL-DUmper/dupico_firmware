@@ -15,6 +15,7 @@
 #include <sys/sys.h>
 
 #include <tasks/shifter_io_task.h>
+#include <utils/custom_debug.h>
 
 #define MAIN_TASK_PRIORITY				( tskIDLE_PRIORITY + 1UL )
 
@@ -33,7 +34,7 @@ void consumer_task(__unused void *params) {
 
     while(true) {
         // not much to do for now
-        printf("Consumer task loop\n");
+        D_PRINTF("Consumer task loop\n");
         shifter_io_task_cmd cmd = {
             .cmd = WRITE,
             .param = 0xF0FA
@@ -43,7 +44,7 @@ void consumer_task(__unused void *params) {
         xQueueSend(prms->cmd_queue, (void*)&cmd, portMAX_DELAY);
 
         if(xQueueReceive(prms->resp_queue, (void*)&val, portMAX_DELAY)) {
-            printf("Consumer got %.16X\n", val);
+            D_PRINTF("Consumer got %.16X\n", val);
         }
 
         vTaskDelay(10000);
@@ -81,7 +82,7 @@ void main_task(__unused void *params) {
 
     while(true) {
         // not much to do for now
-        printf("Main task loop\n");
+        D_PRINTF("Main task loop\n");
         vTaskDelay(10000);
     }
 }

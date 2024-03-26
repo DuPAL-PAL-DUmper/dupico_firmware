@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "${PICO_SDK_PATH}/**"
             ],
-            "defines": [],
+            "defines": [ "USE_D_PRINTF=1" ],
             "compilerPath": "C:\\msys64\\ucrt64\\bin\\arm-none-eabi-c++.exe",
             "cStandard": "c17",
             "cppStandard": "c++20",

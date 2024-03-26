@@ -10,7 +10,6 @@ void shifter_io_task(void *params) {
     uint64_t val;
 
     while(keep_going) {
-        printf("Shifter task loop\n");
         if(xQueueReceive(prms->cmd_queue, (void*)&cmd, portMAX_DELAY)) {
             switch(cmd.cmd) {
                 case WRITE:
