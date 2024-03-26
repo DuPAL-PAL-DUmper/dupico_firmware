@@ -1,8 +1,7 @@
 #include "shifter_io_task.h"
-
-#include <portmacro.h>
-
 #include <stdbool.h>
+#include <stdio.h>
+#include <portmacro.h>
 
 void shifter_io_task(void *params) {
     shifter_io_task_params *prms = (shifter_io_task_params*)params;
@@ -11,6 +10,7 @@ void shifter_io_task(void *params) {
     uint64_t val;
 
     while(keep_going) {
+        printf("Shifter task loop\n");
         if(xQueueReceive(prms->cmd_queue, (void*)&cmd, portMAX_DELAY)) {
             switch(cmd.cmd) {
                 case WRITE:

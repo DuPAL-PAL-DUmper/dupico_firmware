@@ -6,7 +6,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-void piso_shifter_init(PISO_Config* cfg) {
+void piso_shifter_init(const PISO_Config* cfg) {
     // Init the pins
     gpio_init_mask( _BV(cfg->ser_pin) |
                     _BV(cfg->ce_pin)  |
@@ -39,7 +39,7 @@ void piso_shifter_init(PISO_Config* cfg) {
     gpio_put(cfg->clr_pin, true);
 }
 
-uint64_t piso_shifter_get(PISO_Config* cfg) {
+uint64_t piso_shifter_get(const PISO_Config* cfg) {
     uint64_t data = 0;
 
     // Enable clock and inputs, then set clock to low

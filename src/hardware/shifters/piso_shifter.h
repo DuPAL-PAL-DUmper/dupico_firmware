@@ -15,7 +15,7 @@ typedef struct {
     const uint8_t len;
 } PISO_Config;
 
-void piso_shifter_init(PISO_Config* cfg);
-uint64_t piso_shifter_get(PISO_Config* cfg);
+void piso_shifter_init(const PISO_Config* cfg);
+uint64_t piso_shifter_get(const PISO_Config* cfg);
 
 #endif /* _PISO_SHIFTER_HEADER_ */

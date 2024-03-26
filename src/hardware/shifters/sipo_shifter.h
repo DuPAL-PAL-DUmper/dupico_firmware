@@ -15,7 +15,7 @@ typedef struct {
     const uint8_t len;
 } SIPO_Config;
 
-void sipo_shifter_init(SIPO_Config* cfg);
-void sipo_shifter_set(SIPO_Config* cfg, uint64_t val);
+void sipo_shifter_init(const SIPO_Config* cfg);
+void sipo_shifter_set(const SIPO_Config* cfg, uint64_t val);
 
 #endif /* _SIPO_SHIFTER_HEADER_ */

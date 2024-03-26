@@ -6,6 +6,7 @@
 #include <hardware/shifters/piso_shifter.h>
 #include <hardware/shifters/sipo_shifter.h>
 
+#include <FreeRTOS.h>
 #include <queue.h>
 
 typedef enum {
@@ -15,16 +16,16 @@ typedef enum {
 } shifter_io_task_cmd_type;
 
 typedef struct {
-    shifter_io_task_cmd_type cmd;
-    uint64_t param;
+    const shifter_io_task_cmd_type cmd;
+    const uint64_t param;
 } shifter_io_task_cmd;
 
 typedef struct {
-    PISO_Config piso_cfg;
-    SIPO_Config sipo_cfg;
+    const PISO_Config piso_cfg;
+    const SIPO_Config sipo_cfg;
 
-    QueueHandle_t cmd_queue;
-    QueueHandle_t resp_queue;
+    const QueueHandle_t cmd_queue;
+    const QueueHandle_t resp_queue;
 } shifter_io_task_params;
 
 void shifter_io_task(void *params);
