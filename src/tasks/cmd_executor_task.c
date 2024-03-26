@@ -5,12 +5,12 @@ void dummy_command(QueueHandle_t resp_queue, void *params);
 typedef void(*cmd_func)(QueueHandle_t, void*);
 
 static cmd_func command_map[] = {
-    dummy_command, // READ
-    dummy_command, // WRITE
-    dummy_command, // GET_POWER
-    dummy_command, // SET_POWER
+    dummy_command, // READ_RAW
+    dummy_command, // WRITE_RAW
     dummy_command, // DUMP_TO_SD
     dummy_command, // STREAM_FROM_SD
+    dummy_command, // SRAM_CHECK
+    dummy_command, // DRAM_CHECK
 };
 
 void dummy_command(QueueHandle_t resp_queue, void *params) {

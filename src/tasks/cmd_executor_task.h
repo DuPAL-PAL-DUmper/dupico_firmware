@@ -5,12 +5,12 @@
 #include <queue.h>
 
 typedef enum {
-    READ = 0,
-    WRITE = 1,
-    GET_POWER = 2,
-    SET_POWER = 3,
-    DUMP_TO_SD = 4,
-    STREAM_FROM_SD = 5,
+    READ_RAW = 0,
+    WRITE_RAW = 1,
+    DUMP_TO_SD = 2,
+    STREAM_FROM_SD = 3,
+    SRAM_CHECK = 4,
+    DRAM_CHECK = 5,
     DIE
 } cmd_executor_command_type;
 
