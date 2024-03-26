@@ -16,6 +16,7 @@ typedef enum {
 
 typedef struct {
     const cmd_executor_command_type cmd;
+    const uint id;
     const void *param;
 } cmd_executor_command;
 
