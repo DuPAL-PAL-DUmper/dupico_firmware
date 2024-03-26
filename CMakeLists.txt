@@ -16,7 +16,7 @@ project(dupico C CXX ASM)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 20)
 
-add_compile_definitions(USE_D_PRINTF)
+add_compile_definitions(USE_D_PRINTF=1)
 
 # Add subdirectories for project
 add_subdirectory(src)
