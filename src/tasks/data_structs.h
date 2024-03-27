@@ -2,8 +2,9 @@
 #define _DATA_STRUCTS_HEADER_
 
 #include <stdint.h>
+#include <pico/types.h>
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     char name[16];
     uint8_t address_len;
     uint8_t address_idx;
@@ -17,6 +18,8 @@ typedef struct {
     uint8_t data[];
     // Where data is 
     // address_len + data_len + power_len + (special_len * 2) long
-} IC_Control_Data __attribute__((packed));
+} IC_Control_Data;
+
+uint calculate_IC_Control_Data_size(IC_Control_Data *iccd);
 
 #endif /* _DATA_STRUCTS_HEADER_ */

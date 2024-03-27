@@ -13,19 +13,19 @@ typedef enum {
     SET_SPECIAL = 5,
     GET_SPECIAL = 6,
     DIE
-} cmd_executor_command_type;
+} ic_interfacer_command_type;
 
 typedef struct {
-    const cmd_executor_command_type cmd;
+    const ic_interfacer_command_type cmd;
     const uint id;
     const void *param;
-} cmd_executor_command;
+} ic_interfacer_command;
 
 typedef struct {
     const QueueHandle_t cmd_queue;
     const QueueHandle_t resp_queue;
-} cmd_executor_task_params;
+} ic_interfacer_task_params;
 
-void cmd_executor_task(void *params);
+void ic_interfacer_task(void *params);
 
 #endif /* _CMD_EXECUTOR_TASK_ */
