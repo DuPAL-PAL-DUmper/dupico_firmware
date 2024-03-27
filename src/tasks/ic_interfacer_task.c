@@ -2,6 +2,8 @@
 
 #include "data_structs.h"
 
+#include <utils/custom_debug.h>
+
 #include <string.h>
 
 typedef struct {
@@ -28,9 +30,14 @@ void dummy_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, c
 }
 
 void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
-    if(state->cur_ic) vPortFree(state->cur_ic);
+    D_PRINTF("Executing command with id %u\n", id);
+    if(state->cur_ic) {
+        D_PRINTF("Freeing previous definition %s\n", state->cur_ic->name);
+        vPortFree(state->cur_ic);
+    }
     IC_Control_Data *param_data = (IC_Control_Data*)params;
     uint ctrl_data_size = calculate_IC_Control_Data_size(param_data);
+    D_PRINTF("Defining new ic %s with data size %u\n", param_data->name, ctrl_data_size);
 
     state->cur_ic = pvPortMalloc(ctrl_data_size);
     memcpy(state->cur_ic, param_data, ctrl_data_size);
