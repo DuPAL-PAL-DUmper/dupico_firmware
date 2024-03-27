@@ -15,6 +15,17 @@ typedef enum {
     DIE
 } ic_interfacer_command_type;
 
+typedef enum {
+    CMD_OK,
+    CMD_KO
+} ic_interfacer_command_response_type;
+
+typedef struct {
+    const ic_interfacer_command_response_type response;
+    const uint id;
+    const uint64_t data;
+} ic_interfacer_command_response;
+
 typedef struct {
     const ic_interfacer_command_type cmd;
     const uint id;
