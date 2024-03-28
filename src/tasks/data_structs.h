@@ -6,6 +6,7 @@
 
 typedef struct __attribute__((packed)) {
     char name[16];
+    uint16_t chip_type;
     uint8_t address_len;
     uint8_t address_idx;
     uint8_t data_len;
