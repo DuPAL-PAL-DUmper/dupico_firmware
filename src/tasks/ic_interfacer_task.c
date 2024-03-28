@@ -7,7 +7,7 @@
 #include <string.h>
 
 typedef struct {
-    IC_Control_Data *cur_ic;
+    IC_Ctrl_Struct *cur_ic;
 } interfacer_state;
 
 typedef void(*cmd_func)(QueueHandle_t, uint id, interfacer_state*, const void*);
@@ -35,12 +35,12 @@ void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *stat
         D_PRINTF("Freeing previous definition %s\n", state->cur_ic->name);
         vPortFree(state->cur_ic);
     }
-    IC_Control_Data *param_data = (IC_Control_Data*)params;
-    uint ctrl_data_size = calculate_IC_Control_Data_size(param_data);
-    D_PRINTF("Defining new ic %s with data size %u\n", param_data->name, ctrl_data_size);
+    IC_Ctrl_Struct *param_data = (IC_Ctrl_Struct*)params;
+    uint ctrl_struct_size = calculate_IC_Ctrl_Struct_size(param_data);
+    D_PRINTF("Defining new ic %s with data size %u\n", param_data->name, ctrl_struct_size);
 
-    state->cur_ic = pvPortMalloc(ctrl_data_size);
-    memcpy(state->cur_ic, param_data, ctrl_data_size);
+    state->cur_ic = pvPortMalloc(ctrl_struct_size);
+    memcpy(state->cur_ic, param_data, ctrl_struct_size);
 
     ic_interfacer_command_response rsp = {
         .response = CMD_OK,

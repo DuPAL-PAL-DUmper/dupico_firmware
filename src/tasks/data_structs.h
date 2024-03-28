@@ -19,8 +19,8 @@ typedef struct __attribute__((packed)) {
     uint8_t data[];
     // Where data is 
     // address_len + data_len + power_len + (special_len * 2) long
-} IC_Control_Data;
+} IC_Ctrl_Struct;
 
-uint calculate_IC_Control_Data_size(IC_Control_Data *iccd);
+uint calculate_IC_Ctrl_Struct_size(IC_Ctrl_Struct *iccd);
 
 #endif /* _DATA_STRUCTS_HEADER_ */
