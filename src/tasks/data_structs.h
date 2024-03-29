@@ -24,10 +24,10 @@ typedef struct __attribute__((packed)) {
     uint8_t ctrl_type[MAX_CTRL_LEN];
 } IC_Ctrl_Struct;
 
-uint64_t ctrl_struct_i_to_mask(IC_Ctrl_Struct *iccd, uint64_t i);
-uint64_t ctrl_struct_io_to_mask(IC_Ctrl_Struct *iccd, uint64_t io);
-uint64_t ctrl_struct_mask_to_io(IC_Ctrl_Struct *iccd, uint64_t mask);
-uint64_t ctrl_struct_pwr_to_mask(IC_Ctrl_Struct *iccd, uint64_t pwr);
-uint64_t ctrl_struct_ctrl_to_mask(IC_Ctrl_Struct *iccd, uint64_t ctrl);
+uint64_t ctrl_struct_i_to_mask(IC_Ctrl_Struct *iccd, uint32_t i);
+uint64_t ctrl_struct_io_to_mask(IC_Ctrl_Struct *iccd, uint16_t io);
+uint16_t ctrl_struct_mask_to_io(IC_Ctrl_Struct *iccd, uint64_t mask);
+uint64_t ctrl_struct_pwr_to_mask(IC_Ctrl_Struct *iccd, uint8_t pwr);
+uint64_t ctrl_struct_ctrl_to_mask(IC_Ctrl_Struct *iccd, uint8_t ctrl);
 
 #endif /* _DATA_STRUCTS_HEADER_ */
