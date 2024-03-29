@@ -14,7 +14,7 @@ typedef enum {
     GET_PWR = 6,
     SET_CTRL = 7,
     GET_CTRL = 8,
-    COMMIT,
+    COMMIT = 9,
     DIE
 } ic_interfacer_command_type;
 
@@ -26,7 +26,7 @@ typedef enum {
 typedef struct {
     const ic_interfacer_command_response_type response;
     const uint id;
-    const uint64_t data;
+    const uint32_t data;
 } ic_interfacer_command_response;
 
 typedef struct {

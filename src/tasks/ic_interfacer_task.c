@@ -20,12 +20,14 @@ typedef void(*cmd_func)(QueueHandle_t, uint id, interfacer_state*, const void*);
 void dummy_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 void set_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
+void get_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
+void set_io_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 
 static cmd_func command_map[] = {
     define_ic_command, // DEFINE_IC
-    dummy_command, // SET_I 
-    dummy_command, 
-    dummy_command, 
+    set_i_command, // SET_I 
+    get_i_command, // GET_I
+    set_io_command, // SET_IO
     dummy_command, 
     dummy_command, 
     dummy_command, 
@@ -44,7 +46,7 @@ void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *stat
     uint ctrl_struct_size = sizeof(IC_Ctrl_Struct);
     D_PRINTF("Defining new ic %s with data size %u\n", param_data->name, ctrl_struct_size);
 
-    memset(&state, 0, sizeof(interfacer_state));
+    memset(state, 0, sizeof(interfacer_state));
     memcpy(&(state->cur_ic), param_data, ctrl_struct_size);
 
     ic_interfacer_command_response rsp = {
@@ -57,6 +59,40 @@ void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *stat
 void set_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
     D_PRINTF("Executing command with id %u\n", id);
     uint32_t data = *(uint32_t*)params;
+
+    state->i_w = data;
+
+    ic_interfacer_command_response rsp = {
+        .response = CMD_OK,
+        .id = id
+    };
+    xQueueSend(resp_queue, (void*)&rsp, portMAX_DELAY);
+}
+
+void get_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
+    D_PRINTF("Executing command with id %u\n", id);
+    uint32_t data = ctrl_struct_mask_to_i(&(state->cur_ic), state->data);
+
+    ic_interfacer_command_response rsp = {
+        .response = CMD_OK,
+        .id = id,
+        .data = data
+    };
+
+    xQueueSend(resp_queue, (void*)&rsp, portMAX_DELAY);    
+}
+
+void set_io_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
+    D_PRINTF("Executing command with id %u\n", id);
+    uint16_t data = *(uint16_t*)params;
+
+    state->io_w = data;
+
+    ic_interfacer_command_response rsp = {
+        .response = CMD_OK,
+        .id = id
+    };
+    xQueueSend(resp_queue, (void*)&rsp, portMAX_DELAY);
 }
 
 void ic_interfacer_task(void *params) {
