@@ -14,7 +14,7 @@ typedef enum {
     GET_PWR = 6,
     SET_CTRL = 7,
     GET_CTRL = 8,
-    COMMIT = 9,
+    COMMIT,
     DIE
 } ic_interfacer_command_type;
 

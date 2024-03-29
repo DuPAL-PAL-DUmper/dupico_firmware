@@ -35,6 +35,6 @@ uint16_t ctrl_struct_mask_to_io(IC_Ctrl_Struct *iccd, uint64_t mask);
 uint64_t ctrl_struct_pwr_to_mask(IC_Ctrl_Struct *iccd, uint8_t pwr);
 uint8_t ctrl_struct_mask_to_pwr(IC_Ctrl_Struct *iccd, uint64_t mask);
 uint64_t ctrl_struct_ctrl_to_mask(IC_Ctrl_Struct *iccd, uint8_t ctrl);
-uint8_t ctrl_struct_mask_to_pwr(IC_Ctrl_Struct *iccd, uint64_t mask);
+uint8_t ctrl_struct_mask_to_ctrl(IC_Ctrl_Struct *iccd, uint64_t mask);
 
 #endif /* _DATA_STRUCTS_HEADER_ */
