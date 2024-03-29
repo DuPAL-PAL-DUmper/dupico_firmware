@@ -22,13 +22,14 @@ void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *stat
 void set_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 void get_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 void set_io_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
+void get_io_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 
 static cmd_func command_map[] = {
     define_ic_command, // DEFINE_IC
     set_i_command, // SET_I 
     get_i_command, // GET_I
     set_io_command, // SET_IO
-    dummy_command, 
+    get_io_command, // GET_IO
     dummy_command, 
     dummy_command, 
     dummy_command, 
@@ -93,6 +94,19 @@ void set_io_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, 
         .id = id
     };
     xQueueSend(resp_queue, (void*)&rsp, portMAX_DELAY);
+}
+
+void get_io_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
+    D_PRINTF("Executing command with id %u\n", id);
+    uint16_t data = ctrl_struct_mask_to_io(&(state->cur_ic), state->data);
+
+    ic_interfacer_command_response rsp = {
+        .response = CMD_OK,
+        .id = id,
+        .data = data
+    };
+
+    xQueueSend(resp_queue, (void*)&rsp, portMAX_DELAY);     
 }
 
 void ic_interfacer_task(void *params) {
