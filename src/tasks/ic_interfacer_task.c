@@ -8,21 +8,22 @@
 
 typedef struct {
     IC_Ctrl_Struct cur_ic;
-    uint32_t i_w_state;
-    uint16_t io_w_state;
-    uint16_t io_r_state;
-    uint8_t pwr_w_state;
-    uint8_t ctrl_w_state;
+    uint32_t i_w;
+    uint16_t io_w;
+    uint8_t pwr_w;
+    uint8_t ctrl_w;
+    uint64_t data;
 } interfacer_state;
 
 typedef void(*cmd_func)(QueueHandle_t, uint id, interfacer_state*, const void*);
 
 void dummy_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
+void set_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 
 static cmd_func command_map[] = {
     define_ic_command, // DEFINE_IC
-    dummy_command, 
+    dummy_command, // SET_I 
     dummy_command, 
     dummy_command, 
     dummy_command, 
@@ -43,6 +44,7 @@ void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *stat
     uint ctrl_struct_size = sizeof(IC_Ctrl_Struct);
     D_PRINTF("Defining new ic %s with data size %u\n", param_data->name, ctrl_struct_size);
 
+    memset(&state, 0, sizeof(interfacer_state));
     memcpy(&(state->cur_ic), param_data, ctrl_struct_size);
 
     ic_interfacer_command_response rsp = {
@@ -50,6 +52,11 @@ void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *stat
         .id = id
     };
     xQueueSend(resp_queue, (void*)&rsp, portMAX_DELAY);
+}
+
+void set_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
+    D_PRINTF("Executing command with id %u\n", id);
+    uint32_t data = *(uint32_t*)params;
 }
 
 void ic_interfacer_task(void *params) {
