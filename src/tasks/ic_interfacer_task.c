@@ -36,7 +36,7 @@ void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_state *stat
         vPortFree(state->cur_ic);
     }
     IC_Ctrl_Struct *param_data = (IC_Ctrl_Struct*)params;
-    uint ctrl_struct_size = calculate_IC_Ctrl_Struct_size(param_data);
+    uint ctrl_struct_size = sizeof(IC_Ctrl_Struct);
     D_PRINTF("Defining new ic %s with data size %u\n", param_data->name, ctrl_struct_size);
 
     state->cur_ic = pvPortMalloc(ctrl_struct_size);
