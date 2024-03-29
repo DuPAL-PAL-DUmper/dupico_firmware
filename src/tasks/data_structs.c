@@ -29,6 +29,10 @@ uint64_t ctrl_struct_i_to_mask(IC_Ctrl_Struct *iccd, uint32_t i) {
     return map_to_mask_conversion(i, MIN(iccd->i_len, MAX_I_LEN), iccd->i_map);
 }
 
+uint32_t ctrl_struct_mask_to_i(IC_Ctrl_Struct *iccd, uint64_t mask) {
+    return mask_to_map_conversion(mask, MIN(iccd->i_len, MAX_I_LEN), iccd->i_map);
+}
+
 uint64_t ctrl_struct_io_to_mask(IC_Ctrl_Struct *iccd, uint16_t io) {
     return map_to_mask_conversion(io, MIN(iccd->io_len, MAX_IO_LEN), iccd->io_map);
 }
@@ -41,7 +45,15 @@ uint64_t ctrl_struct_pwr_to_mask(IC_Ctrl_Struct *iccd, uint8_t pwr) {
     return map_to_mask_conversion(pwr, MIN(iccd->pwr_len, MAX_PWR_LEN), iccd->pwr_map);
 }
 
+uint8_t ctrl_struct_mask_to_pwr(IC_Ctrl_Struct *iccd, uint64_t mask) {
+    return mask_to_map_conversion(mask, MIN(iccd->pwr_len, MAX_PWR_LEN), iccd->pwr_map) & 0xFF;
+}
+
 uint64_t ctrl_struct_ctrl_to_mask(IC_Ctrl_Struct *iccd, uint8_t ctrl) {
     return map_to_mask_conversion(ctrl, MIN(iccd->ctrl_len, MAX_PWR_LEN), iccd->ctrl_map);
+}
+
+uint8_t ctrl_struct_mask_to_ctrl(IC_Ctrl_Struct *iccd, uint64_t mask) {
+    return mask_to_map_conversion(mask, MIN(iccd->ctrl_len, MAX_CTRL_LEN), iccd->ctrl_map) & 0xFF;
 }
 

@@ -6,12 +6,14 @@
 
 typedef enum {
     DEFINE_IC = 0,
-    SET_ADDRESS = 1,
-    GET_ADDRESS = 2,
-    SET_DATA = 3,
-    GET_DATA = 4,
-    SET_SPECIAL = 5,
-    GET_SPECIAL = 6,
+    SET_I = 1,
+    GET_I = 2,
+    SET_IO = 3,
+    GET_IO = 4,
+    SET_PWR = 5,
+    GET_PWR = 6,
+    SET_CTRL = 7,
+    GET_CTRL = 8,
     DIE
 } ic_interfacer_command_type;
 
