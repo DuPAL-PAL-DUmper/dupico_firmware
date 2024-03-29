@@ -10,9 +10,9 @@
 #include <hardware/shifters/sipo_shifter.h>
 
 typedef enum {
-    READ,
-    WRITE,
-    DIE
+    SHF_READ,
+    SHF_WRITE,
+    SHF_DIE
 } shifter_io_task_cmd_type;
 
 typedef struct {

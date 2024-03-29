@@ -5,17 +5,17 @@
 #include <queue.h>
 
 typedef enum {
-    DEFINE_IC = 0,
-    SET_I = 1,
-    GET_I = 2,
-    SET_IO = 3,
-    GET_IO = 4,
-    SET_PWR = 5,
-    GET_PWR = 6,
-    SET_CTRL = 7,
-    GET_CTRL = 8,
-    COMMIT,
-    DIE
+    INTF_DEFINE_IC = 0,
+    INTF_SET_I = 1,
+    INTF_GET_I = 2,
+    INTF_SET_IO = 3,
+    INTF_GET_IO = 4,
+    INTF_SET_PWR = 5,
+    INTF_GET_PWR = 6,
+    INTF_SET_CTRL = 7,
+    INTF_GET_CTRL = 8,
+    INTF_COMMIT,
+    INTF_DIE
 } ic_interfacer_command_type;
 
 typedef enum {
