@@ -32,6 +32,7 @@
         "util.h": "c",
         "gpio.h": "c",
         "common_macros.h": "c",
-        "shifter_io_task.h": "c"
+        "shifter_io_task.h": "c",
+        "random": "c"
     }
 }

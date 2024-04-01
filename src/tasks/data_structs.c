@@ -2,6 +2,12 @@
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
+#define TYPE_NAME_LEN 10
+static const char ic_type_name_array[][TYPE_NAME_LEN] = {
+    "ROM",
+    "SRAM"
+};
+
 static inline uint64_t map_to_mask_conversion(uint32_t src, uint8_t max_len, uint8_t *map);
 static inline uint32_t mask_to_map_conversion(uint64_t mask, uint8_t max_len, uint8_t *map);
 
@@ -55,5 +61,13 @@ uint64_t ctrl_struct_ctrl_to_mask(IC_Ctrl_Struct *iccd, uint8_t ctrl) {
 
 uint8_t ctrl_struct_mask_to_ctrl(IC_Ctrl_Struct *iccd, uint64_t mask) {
     return mask_to_map_conversion(mask, MIN(iccd->ctrl_len, MAX_CTRL_LEN), iccd->ctrl_map) & 0xFF;
+}
+
+const char *get_ic_type_name(uint16_t type) {
+    if(type >= sizeof(ic_type_name_array)/TYPE_NAME_LEN) {
+        return "UNKNOWN";
+    } else {
+        return ic_type_name_array[type];
+    }
 }
 
