@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <portmacro.h>
 
+#include <utils/custom_debug.h>
+
 void shifter_io_task(void *params) {
     shifter_io_task_params *prms = (shifter_io_task_params*)params;
     shifter_io_task_cmd cmd;
@@ -15,6 +17,8 @@ void shifter_io_task(void *params) {
 
     // Task loop
     while(keep_going) {
+        D_PRINTF("Shifter IO task loop\n");
+
         if(xQueueReceive(prms->cmd_queue, (void*)&cmd, portMAX_DELAY)) {
             switch(cmd.cmd) {
                 case SHF_WRITE:

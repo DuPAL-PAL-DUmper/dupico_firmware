@@ -170,6 +170,8 @@ void ic_interfacer_task(void *params) {
 
     // Task loop
     while(keep_going) {
+        D_PRINTF("IC Interfacer task loop\n");
+        
         if(xQueueReceive(prms->cmd_queue, (void*)&cmd, portMAX_DELAY)) {
             switch(cmd.cmd) {
                 case INTF_COMMIT:
