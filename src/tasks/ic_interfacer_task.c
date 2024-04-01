@@ -17,7 +17,7 @@ typedef struct {
     uint64_t data;
 } interfacer_state;
 
-typedef void(*cmd_func)(QueueHandle_t, uint id, interfacer_state*, const void*);
+typedef void(*cmd_func)(QueueHandle_t, uint, interfacer_state*, const void*);
 
 static void send_response(QueueHandle_t resp_queue, ic_interfacer_command_response_type resp, uint id, uint32_t data);
 
