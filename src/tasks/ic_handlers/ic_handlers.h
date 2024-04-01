@@ -20,4 +20,6 @@ typedef struct {
     cmd_list_getter get_commands;
 } handler_funcs;
 
+handler_funcs get_handlers_for_IC_type(uint16_t ic_type);
+
 #endif /* _IC_HANDLERS_HEADER_ */
