@@ -63,7 +63,14 @@ static void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_stat
 
     IC_Ctrl_Struct *param_data = (IC_Ctrl_Struct*)params;
     uint ctrl_struct_size = sizeof(IC_Ctrl_Struct);
-    D_PRINTF("Defining new ic %s with data size %u\n", param_data->name, ctrl_struct_size);
+    D_PRINTF("Defining new ic %s / type %.4X [data size %u]\n\tI length %u\n\tIO length %u\n\tPWR length %u\n\tCTRL length %u\n",
+        param_data->name,
+        param_data->chip_type,
+        ctrl_struct_size,
+        param_data->i_len,
+        param_data->io_len,
+        param_data->pwr_len,
+        param_data->ctrl_len);
 
     memset(state, 0, sizeof(interfacer_state));
     memcpy(&(state->cur_ic), param_data, ctrl_struct_size);
