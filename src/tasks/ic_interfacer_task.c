@@ -190,7 +190,7 @@ void ic_interfacer_task(void *params) {
                     xQueueSend(shf_prms.cmd_queue, (void*)&shf_cmd_wr, portMAX_DELAY);
 
                     // Relay back the response
-                    if(xQueueReceive(prms->resp_queue, (void*)&(state.data), portMAX_DELAY)) {
+                    if(xQueueReceive(shf_prms.resp_queue, (void*)&(state.data), portMAX_DELAY)) {
                         send_response(prms->resp_queue, CMD_OK, cmd.id, state.data);    
                     } else {
                         D_PRINTF("Unable to read from queue!!!\n");

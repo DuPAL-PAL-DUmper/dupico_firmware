@@ -19,7 +19,7 @@ typedef enum {
 } ic_interfacer_command_type;
 
 typedef enum {
-    CMD_OK,
+    CMD_OK = 0,
     CMD_KO
 } ic_interfacer_command_response_type;
 

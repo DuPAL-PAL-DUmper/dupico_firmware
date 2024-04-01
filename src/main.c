@@ -41,18 +41,40 @@ static inline void stop() {
 void consumer_task(__unused void *params) {
     ic_interfacer_task_params *prms = (ic_interfacer_task_params*)params;
 
+    uint32_t data_test = 0x10;
     ic_interfacer_command define_ic_cmd = {
         .cmd = INTF_DEFINE_IC,
         .id = 1,
         .param = test_ic_definition
     };
+    ic_interfacer_command set_i_cmd = {
+        .cmd = INTF_SET_I,
+        .id = 2,
+        .param = (void*)&data_test
+    };
+    ic_interfacer_command commit_cmd = {
+        .cmd = INTF_COMMIT,
+        .id = 3,
+        .param = NULL
+    };
     ic_interfacer_command_response resp;
 
     xQueueSend(prms->cmd_queue, (void*)&define_ic_cmd, portMAX_DELAY);
     if(xQueueReceive(prms->resp_queue, (void*)&(resp), portMAX_DELAY)) { 
+        D_PRINTF("Received response for command %u with status %u\n", resp.id, resp.response);
+    }
+
+    xQueueSend(prms->cmd_queue, (void*)&set_i_cmd, portMAX_DELAY);
+    if(xQueueReceive(prms->resp_queue, (void*)&(resp), portMAX_DELAY)) { 
+        D_PRINTF("Received response for command %u with status %u\n", resp.id, resp.response);
     }
 
     while(true) {
+        xQueueSend(prms->cmd_queue, (void*)&commit_cmd, portMAX_DELAY);
+        if(xQueueReceive(prms->resp_queue, (void*)&(resp), portMAX_DELAY)) { 
+            D_PRINTF("Received response for command %u with status %u - %.8X\n", resp.id, resp.response, resp.data);
+        }
+
         // not much to do for now
         D_PRINTF("Consumer task loop\n");
         vTaskDelay(10000);
