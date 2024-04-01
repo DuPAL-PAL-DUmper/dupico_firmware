@@ -11,7 +11,9 @@
 #define MAX_CTRL_LEN 8
 
 typedef enum {
-    IC_TYPE_UNKNOWN = 0
+    IC_TYPE_ROM = 0,
+    IC_TYPE_SRAM = 1,
+    IC_TYPE_UNKNOWN = 0xFFFF
 } IC_Type_Enum;
 
 typedef struct __attribute__((packed)) {
