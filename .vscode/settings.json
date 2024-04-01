@@ -33,6 +33,7 @@
         "gpio.h": "c",
         "common_macros.h": "c",
         "shifter_io_task.h": "c",
-        "random": "c"
+        "random": "c",
+        "data_structs.h": "c"
     }
 }

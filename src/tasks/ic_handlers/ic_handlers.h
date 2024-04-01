@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <pico/types.h>
 
-typedef void* (*exec_command)(uint, const void*);
+#include <tasks/data_structs.h>
+
+typedef void* (*exec_command)(uint, IC_Ctrl_Struct*, const void*);
 
 #endif /* _IC_HANDLERS_HEADER_ */
