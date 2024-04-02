@@ -7,13 +7,13 @@
 #include <tasks/data_structs.h>
 #include <tasks/ic_interfacer_task.h>
 
-#define CMD_ENTRY_NAME_LEN 10
+#define CMD_ENTRY_NAME_LEN 16
 typedef struct {
     char name[CMD_ENTRY_NAME_LEN];
     uint id;
 } cmnd_list_entry;
 
-typedef void* (*cmd_executor)(uint, const IC_Ctrl_Struct*, const ic_interfacer_task_params *interfacer_params, const void*);
+typedef void (*cmd_executor)(cmnd_list_entry *, const IC_Ctrl_Struct*, const ic_interfacer_task_params *interfacer_params, const void*);
 typedef const cmnd_list_entry* (*cmd_list_getter)(uint*); // Parameter is pointing to a value that is going to be set to the length of the list
 
 typedef struct {

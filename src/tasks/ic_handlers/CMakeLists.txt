@@ -2,7 +2,9 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/ic_handlers.c
         ${CMAKE_CURRENT_SOURCE_DIR}/generic_ic_handler.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/basic_handlers_io.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/basic_handlers_io.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/generic_ic_handler.h
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/ic_handlers.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/generic_ic_handler.h
 )
