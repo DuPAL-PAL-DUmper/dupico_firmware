@@ -7,33 +7,38 @@
 typedef const cmnd_list_entry* (*cmd_list_getter)(uint*); // Parameter is pointing to a value that is going to be set to the length of the list
 
 enum Command_List {
-    CMD_WR_I,
-    CMD_WR_IO,
-    CMD_RD_IO,
-    CMD_WR_CTRL,
-    CMD_WR_PWR
+    CMD_SET_I,
+    CMD_SET_IO,
+    CMD_GET_IO,
+    CMD_SET_CTRL,
+    CMD_SET_PWR,
+    CMD_COMMIT
 };
 
 static cmnd_list_entry cmnd_entries[] = {
     {
-        .name = "Write Inputs",
-        .id = CMD_WR_I
+        .name = "SET Inputs",
+        .id = CMD_SET_I
     },
     {
-        .name = "Write I/Os",
-        .id = CMD_WR_IO
+        .name = "SET I/Os",
+        .id = CMD_SET_IO
     },
     {
-        .name = "Read I/Os",
-        .id = CMD_RD_IO
+        .name = "GET I/Os",
+        .id = CMD_GET_IO
     },
     {
-        .name = "Write Controls",
-        .id = CMD_WR_CTRL
+        .name = "SET Controls",
+        .id = CMD_SET_CTRL
     },
     {
-        .name = "Write Power",
-        .id = CMD_WR_PWR
+        .name = "SET Power",
+        .id = CMD_SET_PWR
+    },
+    {
+        .name = "COMMIT",
+        .id = CMD_COMMIT
     }
 };
 
@@ -41,20 +46,23 @@ static void executor(cmnd_list_entry *cmnd, const IC_Ctrl_Struct *ic_ctrl, const
     D_PRINTF("Got command %u with name %s\n", cmnd->id, cmnd->name);
 
     switch(cmnd->id) {
-        case CMD_WR_I:
-            handler_write_inputs(ic_ctrl, interfacer_params, *(uint32_t*)param);
+        case CMD_SET_I:
+            handler_set_inputs(interfacer_params, *(uint32_t*)param);
             break;
-        case CMD_WR_IO:
-            handler_write_io(ic_ctrl, interfacer_params, *(uint16_t*)param);
+        case CMD_SET_IO:
+            handler_set_io(interfacer_params, *(uint16_t*)param);
             break;
-        case CMD_RD_IO:
-            *(uint16_t*)param = handler_read_io(ic_ctrl, interfacer_params);
+        case CMD_GET_IO:
+            *(uint16_t*)param = handler_get_io(interfacer_params);
             break;
-        case CMD_WR_CTRL:
-            handler_write_control(ic_ctrl, interfacer_params, *(uint8_t*)param);
+        case CMD_SET_CTRL:
+            handler_set_control(interfacer_params, *(uint8_t*)param);
             break;
-        case CMD_WR_PWR:
-            handler_write_power(ic_ctrl, interfacer_params, *(uint8_t*)param);
+        case CMD_SET_PWR:
+            handler_set_power(interfacer_params, *(uint8_t*)param);
+            break;
+        case CMD_COMMIT:
+            *(uint16_t*)param = handler_commit(interfacer_params);
             break;
         default:
             return;
