@@ -1,4 +1,7 @@
 #include "generic_ic_handler.h"
+
+#include <pico/platform.h>
+
 #include <tasks/ic_interfacer_task.h>
 #include "basic_handlers_io.h"
 
@@ -15,7 +18,7 @@ enum Command_List {
     CMD_COMMIT
 };
 
-static cmnd_list_entry cmnd_entries[] = {
+static const cmnd_list_entry __in_flash() cmnd_entries[] = {
     {
         .name = "SET Inputs",
         .id = CMD_SET_I

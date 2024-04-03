@@ -1,9 +1,9 @@
 #include "data_structs.h"
 
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#include <pico/platform.h>
 
 #define TYPE_NAME_LEN 10
-static const char ic_type_name_array[][TYPE_NAME_LEN] = {
+static const char __in_flash() ic_type_name_array[][TYPE_NAME_LEN] = {
     "ROM",
     "SRAM"
 };

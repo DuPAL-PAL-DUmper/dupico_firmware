@@ -1,8 +1,10 @@
 #include "ic_handlers.h"
 
+#include <pico/platform.h>
+
 #include "generic_ic_handler.h"
 
-static const handlers_getter handler_arr[] = {
+static const handlers_getter __in_flash() handler_arr[] = {
 
 };
 

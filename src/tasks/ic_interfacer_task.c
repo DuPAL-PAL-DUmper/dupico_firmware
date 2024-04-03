@@ -1,12 +1,13 @@
 #include "ic_interfacer_task.h"
 
-#include "data_structs.h"
+#include <pico/platform.h>
+#include <string.h>
 
+#include "data_structs.h"
 #include <tasks/shifter_io_task.h>
 #include <utils/common_macros.h>
 #include <utils/custom_debug.h>
 
-#include <string.h>
 
 typedef struct {
     IC_Ctrl_Struct cur_ic;
@@ -32,7 +33,7 @@ static void get_pwr_command(QueueHandle_t resp_queue, uint id, interfacer_state 
 static void set_ctrl_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 static void get_ctrl_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params);
 
-static cmd_func command_map[] = {
+static cmd_func __in_flash() command_map[] = {
     define_ic_command, // DEFINE_IC
     set_i_command, // SET_I 
     get_i_command, // GET_I

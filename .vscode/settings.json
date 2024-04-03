@@ -36,6 +36,7 @@
         "random": "c",
         "data_structs.h": "c",
         "generic_ic_handler.h": "c",
-        "ic_handlers.h": "c"
+        "ic_handlers.h": "c",
+        "platform.h": "c"
     }
 }
