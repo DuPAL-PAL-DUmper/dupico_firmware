@@ -80,8 +80,8 @@ static void define_ic_command(QueueHandle_t resp_queue, uint id, interfacer_stat
 }
 
 static void set_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
-    D_PRINTF("Executing command with id %u\n", id);
     uint32_t data = *(uint32_t*)params;
+    D_PRINTF("Executing command with id %u and param %u\n", id, data);
 
     state->i_w = data;
     
@@ -96,8 +96,8 @@ static void get_i_command(QueueHandle_t resp_queue, uint id, interfacer_state *s
 }
 
 void set_io_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
-    D_PRINTF("Executing command with id %u\n", id);
     uint16_t data = *(uint16_t*)params;
+    D_PRINTF("Executing command with id %u and param %u\n", id, data);
 
     state->io_w = data;
     
@@ -112,8 +112,8 @@ void get_io_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, 
 }
 
 void set_pwr_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
-    D_PRINTF("Executing command with id %u\n", id);
     uint8_t data = *(uint8_t*)params;
+    D_PRINTF("Executing command with id %u and param %u\n", id, data);
 
     state->pwr_w = data;
     
@@ -128,8 +128,8 @@ void get_pwr_command(QueueHandle_t resp_queue, uint id, interfacer_state *state,
 }
 
 static void set_ctrl_command(QueueHandle_t resp_queue, uint id, interfacer_state *state, const void *params) {
-    D_PRINTF("Executing command with id %u\n", id);
     uint8_t data = *(uint8_t*)params;
+    D_PRINTF("Executing command with id %u and param %u\n", id, data);
 
     state->ctrl_w = data;
     

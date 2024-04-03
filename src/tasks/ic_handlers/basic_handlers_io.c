@@ -9,6 +9,8 @@ static uint32_t send_and_check_command(ic_interfacer_command *cmd, const ic_inte
 static uint32_t send_and_check_command(ic_interfacer_command *cmd, const ic_interfacer_task_params *interfacer_params) {
     ic_interfacer_command_response resp;
 
+    D_PRINTF("Sending command command %u with id %u\n", cmd->cmd, cmd->id);
+    
     xQueueSend(interfacer_params->cmd_queue, (void*)cmd, portMAX_DELAY);
     if(xQueueReceive(interfacer_params->resp_queue, (void*)&(resp), portMAX_DELAY)) { 
         D_PRINTF("Received response for command %u with status %u\n", resp.id, resp.response);

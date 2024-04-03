@@ -13,7 +13,7 @@ typedef struct {
     uint id;
 } cmnd_list_entry;
 
-typedef void (*cmd_executor)(cmnd_list_entry *, const IC_Ctrl_Struct*, const ic_interfacer_task_params *interfacer_params, const void*);
+typedef void (*cmd_executor)(const cmnd_list_entry*, const IC_Ctrl_Struct*, const ic_interfacer_task_params *interfacer_params, const void*);
 typedef const cmnd_list_entry* (*cmd_list_getter)(uint*); // Parameter is pointing to a value that is going to be set to the length of the list
 
 typedef struct {

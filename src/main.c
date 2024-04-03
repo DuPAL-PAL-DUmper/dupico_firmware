@@ -16,6 +16,7 @@
 #include <sys/sys.h>
 
 #include <tasks/ic_interfacer_task.h>
+#include <tasks/ic_handlers/ic_handlers.h>
 #include <utils/custom_debug.h>
 
 #define MAIN_TASK_PRIORITY				( tskIDLE_PRIORITY + 1UL )
@@ -47,33 +48,27 @@ void consumer_task(__unused void *params) {
         .id = 1,
         .param = test_ic_definition
     };
-    ic_interfacer_command set_i_cmd = {
-        .cmd = INTF_SET_I,
-        .id = 2,
-        .param = (void*)&data_test
-    };
-    ic_interfacer_command commit_cmd = {
-        .cmd = INTF_COMMIT,
-        .id = 3,
-        .param = NULL
-    };
     ic_interfacer_command_response resp;
+
+    handler_funcs hfuncs = get_handlers_for_IC_type(((IC_Ctrl_Struct*)test_ic_definition)->chip_type);
+    uint cmd_count;
+    const cmnd_list_entry *cmnds = hfuncs.get_commands(&cmd_count);
+
+    D_PRINTF("Got a list of %u commands.\n", cmd_count);
+
+    for(uint idx = 0; idx < cmd_count; idx++) {
+        D_PRINTF("\tCMD[%u] - %s - %u\n", idx, cmnds[idx].name, cmnds[idx].id);
+    }
 
     xQueueSend(prms->cmd_queue, (void*)&define_ic_cmd, portMAX_DELAY);
     if(xQueueReceive(prms->resp_queue, (void*)&(resp), portMAX_DELAY)) { 
         D_PRINTF("Received response for command %u with status %u\n", resp.id, resp.response);
     }
 
-    xQueueSend(prms->cmd_queue, (void*)&set_i_cmd, portMAX_DELAY);
-    if(xQueueReceive(prms->resp_queue, (void*)&(resp), portMAX_DELAY)) { 
-        D_PRINTF("Received response for command %u with status %u\n", resp.id, resp.response);
-    }
-
+    uint32_t inputs = 0;
     while(true) {
-        xQueueSend(prms->cmd_queue, (void*)&commit_cmd, portMAX_DELAY);
-        if(xQueueReceive(prms->resp_queue, (void*)&(resp), portMAX_DELAY)) { 
-            D_PRINTF("Received response for command %u with status %u - %.8X\n", resp.id, resp.response, resp.data);
-        }
+        hfuncs.exec_command(&cmnds[0], (IC_Ctrl_Struct*)test_ic_definition, (ic_interfacer_task_params*)params, (void*)&inputs);
+        inputs++;
 
         // not much to do for now
         D_PRINTF("Consumer task loop\n");
