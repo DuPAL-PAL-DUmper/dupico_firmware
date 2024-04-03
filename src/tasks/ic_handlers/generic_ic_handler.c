@@ -62,7 +62,7 @@ static void executor(cmnd_list_entry *cmnd, const IC_Ctrl_Struct *ic_ctrl, const
             handler_set_power(interfacer_params, *(uint8_t*)param);
             break;
         case CMD_COMMIT:
-            *(uint16_t*)param = handler_commit(interfacer_params);
+            handler_commit(interfacer_params);
             break;
         default:
             return;
