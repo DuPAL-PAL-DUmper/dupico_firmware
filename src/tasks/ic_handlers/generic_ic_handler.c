@@ -46,7 +46,7 @@ static const cmnd_list_entry __in_flash() cmnd_entries[] = {
 };
 
 static void executor(const cmnd_list_entry *cmnd, const IC_Ctrl_Struct *ic_ctrl, const ic_interfacer_task_params *interfacer_params, const void* param) {
-    D_PRINTF("Got command %u with name %s\n", cmnd->id, cmnd->name);
+    D_PRINTF("Got command %u with name \"%s\"\n", cmnd->id, cmnd->name);
 
     switch(cmnd->id) {
         case CMD_SET_I:

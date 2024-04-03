@@ -65,7 +65,7 @@ uint8_t ctrl_struct_mask_to_ctrl(IC_Ctrl_Struct *iccd, uint64_t mask) {
 
 const char *get_ic_type_name(uint16_t type) {
     if(type >= sizeof(ic_type_name_array)/TYPE_NAME_LEN) {
-        return "UNKNOWN";
+        return "GENERIC";
     } else {
         return ic_type_name_array[type];
     }
