@@ -21,7 +21,7 @@
 
 #define MAIN_TASK_PRIORITY				( tskIDLE_PRIORITY + 1UL )
 
-static const uint8_t test_ic_definition[86] = {
+static const uint8_t __in_flash() test_ic_definition[86] = {
 	0x32, 0x37, 0x43, 0x36, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x0D, 0x0A, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04,
 	0x03, 0x19, 0x18, 0x15, 0x17, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -32,6 +32,37 @@ static const uint8_t test_ic_definition[86] = {
 };
 
 const uint8_t led_pin = LED_PIN;
+
+static void statusDebug() {
+    uint16_t tot_tasks = uxTaskGetNumberOfTasks();
+    UBaseType_t hwMark;
+    HeapStats_t heapStats;
+    // Allocate a TaskStatus_t structure for each task.  An array could be allocated statically at compile time.
+    TaskStatus_t *pxTaskStatusArray = pvPortMalloc(tot_tasks * sizeof(TaskStatus_t));
+
+    vPortGetHeapStats(&heapStats);
+
+    if(pxTaskStatusArray != NULL) {
+        tot_tasks = uxTaskGetSystemState(pxTaskStatusArray, tot_tasks, NULL);
+
+        for(uint16_t x = 0; x < tot_tasks; x++) {
+            // What percentage of the total run time has the task used?
+            // This will always be rounded down to the nearest integer.
+            // ulTotalRunTime has already been divided by 100.
+            hwMark = uxTaskGetStackHighWaterMark(pxTaskStatusArray[x].xHandle);
+
+            D_PRINTF("\t[%s] --- %lu hwmrk\n",
+                pxTaskStatusArray[x].pcTaskName,
+                hwMark);
+        }
+
+        vPortFree(pxTaskStatusArray);
+    } else {
+        D_PRINTF("!!!Failed allocation for task structure!!!\n");
+    }
+
+    D_PRINTF("\tHEAP -> Available:%u - Minimum Free Ever:%u\n", heapStats.xAvailableHeapSpaceInBytes, heapStats.xMinimumEverFreeBytesRemaining);
+}
 
 static inline void stop() {
     fflush(stdout);
@@ -89,6 +120,7 @@ void main_task(__unused void *params) {
     while(true) {
         // not much to do for now
         D_PRINTF("Main task loop\n");
+        statusDebug();
         vTaskDelay(10000);
     }
 }
