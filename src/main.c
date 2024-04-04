@@ -51,8 +51,10 @@ static void statusDebug() {
             // ulTotalRunTime has already been divided by 100.
             hwMark = uxTaskGetStackHighWaterMark(pxTaskStatusArray[x].xHandle);
 
-            D_PRINTF("\t[%s] --- %lu hwmrk\n",
+            D_PRINTF("\t[%s] - (%u|%u) -- %lu hwmrk\n",
                 pxTaskStatusArray[x].pcTaskName,
+                pxTaskStatusArray[x].uxBasePriority,
+                pxTaskStatusArray[x].uxCurrentPriority,
                 hwMark);
         }
 
@@ -115,7 +117,7 @@ void main_task(__unused void *params) {
     };
 
     xTaskCreate(consumer_task, "ConsumerTask", configMINIMAL_STACK_SIZE, (void*)&intrfc_prms, MAIN_TASK_PRIORITY, &consumer_t_handle);
-    xTaskCreate(ic_interfacer_task, "IcInterfacerTask", configMINIMAL_STACK_SIZE, (void*)&intrfc_prms, MAIN_TASK_PRIORITY, &interfacer_t_handle);
+    xTaskCreate(ic_interfacer_task, "IcInterfacerTask", (configSTACK_DEPTH_TYPE)384, (void*)&intrfc_prms, MAIN_TASK_PRIORITY, &interfacer_t_handle);
 
     while(true) {
         // not much to do for now
