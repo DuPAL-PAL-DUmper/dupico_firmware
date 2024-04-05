@@ -51,7 +51,8 @@ static void statusDebug() {
             // ulTotalRunTime has already been divided by 100.
             hwMark = uxTaskGetStackHighWaterMark(pxTaskStatusArray[x].xHandle);
 
-            D_PRINTF("\t[%s] - (%u|%u) -- %lu hwmrk\n",
+            D_PRINTF("\t[%3u] \"%15s\" - bPri:%2u cPri:%2u  hw:%4lu\n",
+                pxTaskStatusArray[x].xTaskNumber,
                 pxTaskStatusArray[x].pcTaskName,
                 pxTaskStatusArray[x].uxBasePriority,
                 pxTaskStatusArray[x].uxCurrentPriority,
@@ -63,7 +64,10 @@ static void statusDebug() {
         D_PRINTF("!!!Failed allocation for task structure!!!\n");
     }
 
-    D_PRINTF("\tHEAP -> Available:%u - Minimum Free Ever:%u\n", heapStats.xAvailableHeapSpaceInBytes, heapStats.xMinimumEverFreeBytesRemaining);
+    D_PRINTF("\tHEAP avl: %u, blks: %lu, min: %lu\n",
+        heapStats.xAvailableHeapSpaceInBytes,
+        heapStats.xNumberOfFreeBlocks,
+        heapStats.xMinimumEverFreeBytesRemaining);
 }
 
 static inline void stop() {
@@ -90,7 +94,7 @@ void consumer_task(__unused void *params) {
     D_PRINTF("Got a list of %u commands.\n", cmd_count);
 
     for(uint idx = 0; idx < cmd_count; idx++) {
-        D_PRINTF("\tCMD[%u] - %s - %u\n", idx, cmnds[idx].name, cmnds[idx].id);
+        D_PRINTF("\tCMD[%3u] -> \"%16s\" <%u>\n", idx, cmnds[idx].name, cmnds[idx].id);
     }
 
     xQueueSend(prms->cmd_queue, (void*)&define_ic_cmd, portMAX_DELAY);
