@@ -51,7 +51,7 @@ static const cmd_list_entry __in_flash() cmd_entries[] = {
     }
 };
 
-static void executor(const cmd_list_entry *cmd, const IC_Ctrl_Struct *ic_ctrl, const ic_interfacer_task_params *interfacer_params, const QueueHandle_t update_queue, const void* param) {
+static int8_t executor(const cmd_list_entry *cmd, const IC_Ctrl_Struct *ic_ctrl, const ic_interfacer_task_params *interfacer_params, const QueueHandle_t update_queue, const void* param) {
     D_PRINTF("Got command %u with name \"%s\"\n", cmd->id, cmd->name);
 
     if(update_queue) {
@@ -89,7 +89,7 @@ static void executor(const cmd_list_entry *cmd, const IC_Ctrl_Struct *ic_ctrl, c
                     .data = 0
                 }), portMAX_DELAY);
             }
-            return;
+            return -1;
     }
 
     if(update_queue) {
@@ -99,6 +99,8 @@ static void executor(const cmd_list_entry *cmd, const IC_Ctrl_Struct *ic_ctrl, c
             .data = 0
         }), portMAX_DELAY);
     }
+
+    return 0;
 }
 
 static const cmd_list_entry* get_cmd_list(uint* len) {

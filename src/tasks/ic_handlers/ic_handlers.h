@@ -34,7 +34,7 @@ typedef struct {
     uint64_t data;
 } cmd_status_update;
 
-typedef void (*cmd_executor)(const cmd_list_entry*, const IC_Ctrl_Struct*, const ic_interfacer_task_params *interfacer_params, const QueueHandle_t update_queue, const void*);
+typedef int8_t (*cmd_executor)(const cmd_list_entry*, const IC_Ctrl_Struct*, const ic_interfacer_task_params *interfacer_params, const QueueHandle_t update_queue, const void*);
 typedef const cmd_list_entry* (*cmd_list_getter)(uint*); // Parameter is pointing to a value that is going to be set to the length of the list
 
 typedef struct {
