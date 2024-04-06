@@ -89,12 +89,12 @@ void consumer_task(__unused void *params) {
 
     handler_funcs hfuncs = get_handlers_for_IC_type(((IC_Ctrl_Struct*)test_ic_definition)->chip_type);
     uint cmd_count;
-    const cmnd_list_entry *cmnds = hfuncs.get_commands(&cmd_count);
+    const cmd_list_entry *cmds = hfuncs.get_commands(&cmd_count);
 
     D_PRINTF("Got a list of %u commands.\n", cmd_count);
 
     for(uint idx = 0; idx < cmd_count; idx++) {
-        D_PRINTF("\tCMD[%3u] -> \"%16s\" <%u>\n", idx, cmnds[idx].name, cmnds[idx].id);
+        D_PRINTF("\tCMD[%3u] -> \"%16s\" <%u>\n", idx, cmds[idx].name, cmds[idx].id);
     }
 
     xQueueSend(prms->cmd_queue, (void*)&define_ic_cmd, portMAX_DELAY);
@@ -104,7 +104,7 @@ void consumer_task(__unused void *params) {
 
     uint32_t inputs = 0;
     while(true) {
-        hfuncs.exec_command(&cmnds[0], (IC_Ctrl_Struct*)test_ic_definition, (ic_interfacer_task_params*)params, (void*)&inputs);
+        hfuncs.exec_command(&cmds[0], (IC_Ctrl_Struct*)test_ic_definition, (ic_interfacer_task_params*)params, NULL, (void*)&inputs);
         inputs++;
 
         // not much to do for now
