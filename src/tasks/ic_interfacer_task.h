@@ -1,5 +1,5 @@
-#ifndef _CMD_EXECUTOR_TASK_
-#define _CMD_EXECUTOR_TASK_
+#ifndef _IC_INTERFACER_TASK_
+#define _IC_INTERFACER_TASK_
 
 #include <FreeRTOS.h>
 #include <queue.h>
@@ -42,4 +42,4 @@ typedef struct {
 
 void ic_interfacer_task(void *params);
 
-#endif /* _CMD_EXECUTOR_TASK_ */
+#endif /* _IC_INTERFACER_TASK_ */
