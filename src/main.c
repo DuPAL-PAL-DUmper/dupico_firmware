@@ -78,6 +78,8 @@ static inline void stop() {
 
 void consumer_task(__unused void *params) {
     ic_interfacer_task_params *prms = (ic_interfacer_task_params*)params;
+    QueueHandle_t cmd_update_queue = xQueueCreate(6, sizeof(cmd_status_update));
+    cmd_status_update cmd_update;
 
     uint32_t data_test = 0x10;
     ic_interfacer_command define_ic_cmd = {
@@ -104,11 +106,16 @@ void consumer_task(__unused void *params) {
 
     uint32_t inputs = 0;
     while(true) {
-        hfuncs.exec_command(&cmds[0], (IC_Ctrl_Struct*)test_ic_definition, (ic_interfacer_task_params*)params, NULL, (void*)&inputs);
+        hfuncs.exec_command(&cmds[0], (IC_Ctrl_Struct*)test_ic_definition, (ic_interfacer_task_params*)params, cmd_update_queue, (void*)&inputs);
         inputs++;
 
         // not much to do for now
         D_PRINTF("Consumer task loop\n");
+
+        while(xQueueReceive(cmd_update_queue, (void*)&(cmd_update), 10)) { 
+            D_PRINTF("Received update (%u) for command \"%s\" with id %u\n", cmd_update.status, cmd_update.cmd.name, cmd_update.cmd.id);
+        }
+
         vTaskDelay(10000);
     }
 }
