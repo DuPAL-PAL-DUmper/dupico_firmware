@@ -24,6 +24,7 @@ void command_hub_task(void *params) {
     // Handle updates from sent commands
     QueueHandle_t cmd_update_queue = xQueueCreate(2, sizeof(cmd_status_update));
     cmd_status_update cmd_update;
+    command_hub_command cmd;
 
     // Queues to send the updates to the CLI and OLED tasks
     // Queues to handle reception of commands and responses from CLI and OLED tasks
@@ -44,14 +45,24 @@ void command_hub_task(void *params) {
 
     // TODO: Create and start the tasks to handle CLI and OLED interface
     // TODO: Define the interface to send commands and receive responses from this task
-    // TODO: Define the queues to handle the above
 
     while(true) {
-
-        while(xQueueReceive(cmd_update_queue, (void*)&(cmd_update), 0)) {
-            // TODO: Handle and redirect updates from commands
+        // Receive commands from the CLI
+        while(xQueueReceive(cli_queues.cmd_queue, (void*)&(cmd), 0)) {
+            // TODO: Handle commands and respond
         }
 
-        vTaskDelay(10000);
+        // Receive commands from the OLED
+        while(xQueueReceive(oled_queues.cmd_queue, (void*)&(cmd), 0)) {
+            // TODO: Handle commands and respond
+        }
+
+        while(xQueueReceive(cmd_update_queue, (void*)&(cmd_update), 0)) {
+            // Redirect command updates to oled and cli tasks
+            xQueueSend(cli_queues.cmd_update_queue, (void*)&cmd_update, portMAX_DELAY);    
+            xQueueSend(oled_queues.cmd_update_queue, (void*)&cmd_update, portMAX_DELAY);    
+        }
+
+        taskYIELD();
     }
 }
