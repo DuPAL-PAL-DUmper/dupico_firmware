@@ -58,6 +58,8 @@ void command_hub_task(void *params) {
         }
 
         while(xQueueReceive(cmd_update_queue, (void*)&(cmd_update), 0)) {
+            // TODO: Handle the update, for example saving to SD card or similar
+
             // Redirect command updates to oled and cli tasks
             xQueueSend(cli_queues.cmd_update_queue, (void*)&cmd_update, portMAX_DELAY);    
             xQueueSend(oled_queues.cmd_update_queue, (void*)&cmd_update, portMAX_DELAY);    
