@@ -26,14 +26,18 @@ void command_hub_task(void *params) {
     cmd_status_update cmd_update;
 
     // Queues to send the updates to the CLI and OLED tasks
-    QueueHandle_t cmd_update_queue_OLED = xQueueCreate(2, sizeof(cmd_status_update));
-    QueueHandle_t cmd_update_queue_CLI = xQueueCreate(2, sizeof(cmd_status_update));
-
     // Queues to handle reception of commands and responses from CLI and OLED tasks
-    QueueHandle_t cmd_update_queue_command_OLED = xQueueCreate(1, sizeof(command_hub_command));
-    QueueHandle_t cmd_update_queue_command_CLI = xQueueCreate(1, sizeof(command_hub_command));
-    QueueHandle_t cmd_update_queue_response_OLED = xQueueCreate(1, sizeof(command_hub_command_response));
-    QueueHandle_t cmd_update_queue_response_CLI = xQueueCreate(1, sizeof(command_hub_command_response));
+    command_hub_queues cli_queues = {
+        .cmd_queue = xQueueCreate(1, sizeof(command_hub_command)),
+        .resp_queue = xQueueCreate(1, sizeof(command_hub_command_response)),
+        cmd_update_queue = xQueueCreate(2, sizeof(cmd_status_update))
+    };
+
+    command_hub_queues oled_queues = {
+        .cmd_queue = xQueueCreate(1, sizeof(command_hub_command)),
+        .resp_queue = xQueueCreate(1, sizeof(command_hub_command_response)),
+        cmd_update_queue = xQueueCreate(2, sizeof(cmd_status_update))
+    };
 
     // Start the interfacer task
     xTaskCreate(ic_interfacer_task, "IcInterfacerTask", (configSTACK_DEPTH_TYPE)384, (void*)&intrfc_prms, BASELINE_TASK_PRIORITY, &interfacer_t_handle);
