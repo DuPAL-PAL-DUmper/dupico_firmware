@@ -1,0 +1,8 @@
+target_sources(${PROJECT_NAME}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/oled_interface_task.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/cli_interface_task.c
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/oled_interface_task.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/cli_interface_task.h
+)

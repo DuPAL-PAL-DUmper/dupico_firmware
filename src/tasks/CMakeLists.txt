@@ -1,4 +1,5 @@
 add_subdirectory(ic_handlers)
+add_subdirectory(interface_tasks)
 
 target_sources(${PROJECT_NAME}
     PRIVATE

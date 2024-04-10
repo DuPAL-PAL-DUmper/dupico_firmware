@@ -19,7 +19,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
 
 void command_hub_task(void *params) {
     command_hub_status status = WAITING_FOR_IC;
-    TaskHandle_t interfacer_t_handle;
+    TaskHandle_t interfacer_t_handle, cli_interface_t_handle, oled_interface_t_handle;
     
     // Parameters for the IC interfacer task
     ic_interfacer_task_params intrfc_prms = {
@@ -49,8 +49,9 @@ void command_hub_task(void *params) {
     // Start the interfacer task
     xTaskCreate(ic_interfacer_task, "IcInterfacerTask", (configSTACK_DEPTH_TYPE)384, (void*)&intrfc_prms, BASELINE_TASK_PRIORITY, &interfacer_t_handle);
 
-    // TODO: Create and start the tasks to handle CLI and OLED interface
-    // TODO: Define the interface to send commands and receive responses from this task
+    // Create and start the tasks to handle CLI and OLED interface
+    xTaskCreate(ic_interfacer_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
+    xTaskCreate(ic_interfacer_task, "OLEDInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&oled_queues, BASELINE_TASK_PRIORITY, &oled_interface_t_handle);
 
     while(true) {
         // Receive commands from the CLI
