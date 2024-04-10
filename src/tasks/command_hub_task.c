@@ -11,6 +11,12 @@ typedef enum {
     ERROR
 } command_hub_status;
 
+static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue);
+
+static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue) {
+    // TODO: Handle commands and respond
+}
+
 void command_hub_task(void *params) {
     command_hub_status status = WAITING_FOR_IC;
     TaskHandle_t interfacer_t_handle;
@@ -49,12 +55,12 @@ void command_hub_task(void *params) {
     while(true) {
         // Receive commands from the CLI
         while(xQueueReceive(cli_queues.cmd_queue, (void*)&(cmd), 0)) {
-            // TODO: Handle commands and respond
+            handle_inbound_commands(&cmd, cli_queues.resp_queue);
         }
 
         // Receive commands from the OLED
         while(xQueueReceive(oled_queues.cmd_queue, (void*)&(cmd), 0)) {
-            // TODO: Handle commands and respond
+            handle_inbound_commands(&cmd, oled_queues.resp_queue);
         }
 
         while(xQueueReceive(cmd_update_queue, (void*)&(cmd_update), 0)) {
