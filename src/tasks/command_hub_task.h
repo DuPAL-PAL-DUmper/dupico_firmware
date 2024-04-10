@@ -4,11 +4,21 @@
 #include <FreeRTOS.h>
 #include <queue.h>
 
-typedef struct {
-} command_hub_command;
+typedef enum {
+    CMDH_SUPPORTED_IC_COUNT,
+    CMDH_SUPPORTED_IC_BEGIN_LIST,
+    CMDH_SUPPORTED_IC_LIST_NEXT,
+    CMDH_SUPPORTED_IC_LIST_PREV
+} command_hub_cmd_type;
 
 typedef struct {
-} command_hub_command_response;
+    command_hub_cmd_type type;
+    uint id;
+} command_hub_cmd;
+
+typedef struct {
+    uint id;
+} command_hub_cmd_resp;
 
 typedef struct {
     QueueHandle_t cmd_queue;

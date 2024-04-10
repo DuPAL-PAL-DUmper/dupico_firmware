@@ -24,19 +24,19 @@ void command_hub_task(void *params) {
     // Handle updates from sent commands
     QueueHandle_t cmd_update_queue = xQueueCreate(2, sizeof(cmd_status_update));
     cmd_status_update cmd_update;
-    command_hub_command cmd;
+    command_hub_cmd cmd;
 
     // Queues to send the updates to the CLI and OLED tasks
     // Queues to handle reception of commands and responses from CLI and OLED tasks
     command_hub_queues cli_queues = {
-        .cmd_queue = xQueueCreate(1, sizeof(command_hub_command)),
-        .resp_queue = xQueueCreate(1, sizeof(command_hub_command_response)),
+        .cmd_queue = xQueueCreate(1, sizeof(command_hub_cmd)),
+        .resp_queue = xQueueCreate(1, sizeof(command_hub_cmd_resp)),
         cmd_update_queue = xQueueCreate(2, sizeof(cmd_status_update))
     };
 
     command_hub_queues oled_queues = {
-        .cmd_queue = xQueueCreate(1, sizeof(command_hub_command)),
-        .resp_queue = xQueueCreate(1, sizeof(command_hub_command_response)),
+        .cmd_queue = xQueueCreate(1, sizeof(command_hub_cmd)),
+        .resp_queue = xQueueCreate(1, sizeof(command_hub_cmd_resp)),
         cmd_update_queue = xQueueCreate(2, sizeof(cmd_status_update))
     };
 
