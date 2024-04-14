@@ -15,8 +15,7 @@
 
 #include <sys/sys.h>
 
-#include <tasks/ic_interfacer_task.h>
-#include <tasks/ic_handlers/ic_handlers.h>
+#include <tasks/command_hub_task.h>
 #include <utils/custom_debug.h>
 
 #define MAIN_TASK_PRIORITY				( tskIDLE_PRIORITY + 1UL )
@@ -76,62 +75,13 @@ static inline void stop() {
 }
 
 
-void consumer_task(__unused void *params) {
-    ic_interfacer_task_params *prms = (ic_interfacer_task_params*)params;
-    QueueHandle_t cmd_update_queue = xQueueCreate(6, sizeof(cmd_status_update));
-    cmd_status_update cmd_update;
-
-    uint32_t data_test = 0x10;
-    ic_interfacer_command define_ic_cmd = {
-        .cmd = INTF_DEFINE_IC,
-        .id = 1,
-        .param = test_ic_definition
-    };
-    ic_interfacer_command_response resp;
-
-    handler_funcs hfuncs = get_handlers_for_IC_type(((IC_Ctrl_Struct*)test_ic_definition)->chip_type);
-    uint cmd_count;
-    const cmd_list_entry *cmds = hfuncs.get_commands(&cmd_count);
-
-    D_PRINTF("Got a list of %u commands.\n", cmd_count);
-
-    for(uint idx = 0; idx < cmd_count; idx++) {
-        D_PRINTF("\tCMD[%3u] -> \"%16s\" <%u>\n", idx, cmds[idx].name, cmds[idx].id);
-    }
-
-    xQueueSend(prms->cmd_queue, (void*)&define_ic_cmd, portMAX_DELAY);
-    if(xQueueReceive(prms->resp_queue, (void*)&(resp), portMAX_DELAY)) { 
-        D_PRINTF("Received response for command %u with status %u\n", resp.id, resp.response);
-    }
-
-    uint32_t inputs = 0;
-    while(true) {
-        hfuncs.exec_command(&cmds[0], (IC_Ctrl_Struct*)test_ic_definition, (ic_interfacer_task_params*)params, cmd_update_queue, (void*)&inputs);
-        inputs++;
-
-        // not much to do for now
-        D_PRINTF("Consumer task loop\n");
-
-        while(xQueueReceive(cmd_update_queue, (void*)&(cmd_update), 10)) { 
-            D_PRINTF("Received update (%u) for command \"%s\" with id %u\n", cmd_update.status, cmd_update.cmd.name, cmd_update.cmd.id);
-        }
-
-        vTaskDelay(10000);
-    }
-}
-
 void main_task(__unused void *params) {
-    TaskHandle_t consumer_t_handle, interfacer_t_handle;
-    ic_interfacer_task_params intrfc_prms = {
-        .cmd_queue = xQueueCreate(1, sizeof(ic_interfacer_command)),
-        .resp_queue = xQueueCreate(1, sizeof(ic_interfacer_command_response))
-    };
+    TaskHandle_t command_hub_t_handle;
 
-    xTaskCreate(consumer_task, "ConsumerTask", configMINIMAL_STACK_SIZE, (void*)&intrfc_prms, MAIN_TASK_PRIORITY, &consumer_t_handle);
-    xTaskCreate(ic_interfacer_task, "IcInterfacerTask", (configSTACK_DEPTH_TYPE)384, (void*)&intrfc_prms, MAIN_TASK_PRIORITY, &interfacer_t_handle);
+    xTaskCreate(command_hub_task, "CommandHubTask", (configSTACK_DEPTH_TYPE)384, (void*) NULL, MAIN_TASK_PRIORITY, &command_hub_t_handle);
 
     while(true) {
-        // not much to do for now
+        // Now loop indefinitely printing debug data
         D_PRINTF("Main task loop\n");
         statusDebug();
         vTaskDelay(10000);
@@ -139,8 +89,6 @@ void main_task(__unused void *params) {
 }
 
 void vLaunch(void) {
-
-
     TaskHandle_t main_t_handle;
     xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, MAIN_TASK_PRIORITY, &main_t_handle);
 

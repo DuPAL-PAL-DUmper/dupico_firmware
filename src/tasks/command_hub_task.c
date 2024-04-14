@@ -1,5 +1,7 @@
 #include "command_hub_task.h"
 
+#include <task.h>
+
 #include <common_macros.h>
 
 #include <tasks/ic_interfacer_task.h>
