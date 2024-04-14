@@ -6,12 +6,6 @@
 
 #include <FreeRTOS.h>
 #include <task.h>
-#include <queue.h>
-
-#include "ff_headers.h"
-#include "ff_sddisk.h"
-#include "ff_stdio.h"
-#include "ff_utils.h"
 
 #include <sys/sys.h>
 

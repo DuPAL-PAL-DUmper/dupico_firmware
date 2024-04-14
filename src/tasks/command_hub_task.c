@@ -2,6 +2,12 @@
 
 #include <task.h>
 
+// Headers for SD card access
+#include "ff_headers.h"
+#include "ff_sddisk.h"
+#include "ff_stdio.h"
+#include "ff_utils.h"
+
 #include <common_macros.h>
 
 #include <tasks/ic_interfacer_task.h>
