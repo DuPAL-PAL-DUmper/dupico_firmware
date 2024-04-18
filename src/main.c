@@ -113,3 +113,14 @@ int main() {
 void vApplicationPassiveIdleHook(void) {
     return;
 }
+
+/*
+void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName )
+{
+    while (true) {
+        printf("!!! STACK OVERFLOW on %s\n\n", pcTaskName);
+    }
+}
+*/
+
+// also check vAssertCalled
