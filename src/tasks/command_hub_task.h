@@ -18,6 +18,11 @@ typedef enum {
     CMDH_RESET
 } command_hub_cmd_type;
 
+typedef enum {
+    CMDH_RESP_OK,
+    CMDH_RESP_ERROR
+} command_hub_cmd_response_type;
+
 typedef struct {
     cmd_list_entry *cmds;
     uint size;
@@ -25,6 +30,7 @@ typedef struct {
 
 typedef union {
     command_hub_cmd_resp_cmdlist cmdlist;
+    cmd_list_entry cmd;
     IC_Ctrl_Struct iccd;
     uint32_t data;
 } command_hub_cmd_resp_data;
@@ -35,8 +41,8 @@ typedef struct {
 } command_hub_cmd;
 
 typedef struct {
-    cmd_list_entry cmd;
     uint id;
+    command_hub_cmd_response_type type;
     command_hub_cmd_resp_data data;
 } command_hub_cmd_resp;
 
