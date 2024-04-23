@@ -35,6 +35,7 @@ static const char __in_flash() SD_DEFS_PATH[] = "/" SD_NAME "/definitions";
 
 static FF_Disk_t *sd_disk = NULL;
 static IC_Ctrl_Struct cur_ic_definition;
+static handler_funcs ic_handlers;
 FF_FindData_t *pxFindStruct = NULL;
 
 static bool initialize_SD_iface(void);
@@ -61,7 +62,24 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
         case CMDH_SUPPORTED_IC_LIST_SELECT:
             // TODO: Select the current IC definition, retrieve the handlers for it
         case CMDH_SELECTED_IC_GET_CMD_LIST:
-            // TODO: Retrieve the list of commands supported by this definition
+            if(*hub_status != READY) {
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+            }  else {
+                uint cmd_list_size;
+                cmd_list_entry* cmds = ic_handlers.get_commands(&cmd_list_size);
+                // Return the command list and its size
+                xQueueSend(resp_queue, (void*)& ((command_hub_cmd_resp){
+                    .id = cmd->id,
+                    .type = CMDH_RESP_OK,
+                    .data = (command_hub_cmd_resp_data) {
+                        .cmdlist = (command_hub_cmd_resp_cmdlist) {
+                            .cmds = cmds,
+                            .size = cmd_list_size
+                        }
+                    }
+                }), portMAX_DELAY);                
+            }
+            break;
         case CMDH_SELECTED_IC_EXEC_CMD:
             // TODO: Execute the included command for said IC in a specialized command task
         default:
