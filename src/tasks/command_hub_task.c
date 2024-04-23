@@ -11,11 +11,14 @@
 #include <common_macros.h>
 
 #include <tasks/ic_interfacer_task.h>
+#include <tasks/interface_tasks/cli_interface_task.h>
+#include <tasks/interface_tasks/oled_interface_task.h>
 #include <tasks/ic_handlers/ic_handlers.h>
 
 typedef enum {
     WAITING_FOR_IC,
     READY,
+    BUSY,
     ERROR
 } command_hub_status;
 
@@ -23,6 +26,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
 
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue) {
     // TODO: Handle commands and respond
+    // TODO: Commands must be offloaded to another task, which will send updates through the cmd_status_update queue
 }
 
 void command_hub_task(void *params) {
@@ -58,8 +62,8 @@ void command_hub_task(void *params) {
     xTaskCreate(ic_interfacer_task, "IcInterfacerTask", (configSTACK_DEPTH_TYPE)384, (void*)&intrfc_prms, BASELINE_TASK_PRIORITY, &interfacer_t_handle);
 
     // Create and start the tasks to handle CLI and OLED interface
-    xTaskCreate(ic_interfacer_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
-    xTaskCreate(ic_interfacer_task, "OLEDInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&oled_queues, BASELINE_TASK_PRIORITY, &oled_interface_t_handle);
+    xTaskCreate(oled_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
+    xTaskCreate(cli_interface_task, "OLEDInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&oled_queues, BASELINE_TASK_PRIORITY, &oled_interface_t_handle);
 
     while(true) {
         // Receive commands from the CLI
@@ -73,7 +77,7 @@ void command_hub_task(void *params) {
         }
 
         while(xQueueReceive(cmd_update_queue, (void*)&(cmd_update), 0)) {
-            // TODO: Handle the update, for example saving to SD card or similar
+            // TODO: Handle the updates coming in from the command
 
             // Relay command updates to oled and cli tasks
             xQueueSend(cli_queues.cmd_update_queue, (void*)&cmd_update, portMAX_DELAY);    
