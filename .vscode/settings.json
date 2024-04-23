@@ -38,6 +38,7 @@
         "generic_ic_handler.h": "c",
         "ic_handlers.h": "c",
         "platform.h": "c",
-        "queue.h": "c"
+        "queue.h": "c",
+        "ff_utils.h": "c"
     }
 }

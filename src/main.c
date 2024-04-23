@@ -72,7 +72,7 @@ static inline void stop() {
 void main_task(__unused void *params) {
     TaskHandle_t command_hub_t_handle;
 
-    xTaskCreate(command_hub_task, "CommandHubTask", (configSTACK_DEPTH_TYPE)384, (void*) NULL, MAIN_TASK_PRIORITY, &command_hub_t_handle);
+    xTaskCreate(command_hub_task, "CommandHubTask", (configSTACK_DEPTH_TYPE)512, (void*) NULL, MAIN_TASK_PRIORITY, &command_hub_t_handle);
 
     while(true) {
         // Now loop indefinitely printing debug data
