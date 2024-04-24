@@ -58,7 +58,12 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, count_ic_definitions());
             break;
         case CMDH_SUPPORTED_IC_BEGIN_LIST:
+            if(!ic_definition_search_restart()) {
+                // We found no defintions!!!
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+            }
             // TODO: Point to the first definition of the supported ICs, return it
+            break;
         case CMDH_SUPPORTED_IC_LIST_NEXT:
             // TODO: Return the next definition on the list of supported ICs. If the list is at the end, return the same
         case CMDH_SUPPORTED_IC_LIST_SELECT:
@@ -84,12 +89,12 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             break;
         case CMDH_SELECTED_IC_EXEC_CMD:
             // TODO: Execute the included command for said IC in a specialized command task
+            // TODO: Commands must be offloaded to another task, which will send updates through the cmd_status_update queue
         default:
             *hub_status = ERROR;
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
             break;
     }
-    // TODO: Commands must be offloaded to another task, which will send updates through the cmd_status_update queue
 }
 
 static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint32_t data) {
@@ -109,6 +114,8 @@ static uint count_ic_definitions(void) {
         count++;
         while(ic_definition_search_next()) count++;
     }
+
+    D_PRINTF("Found %u definition(s)!\n", count);
 
     return count;
 }
