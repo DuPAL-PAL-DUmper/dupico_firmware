@@ -42,6 +42,8 @@ static bool initialize_SD_iface(void);
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, command_hub_status *hub_status);
 static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint32_t data);
 static uint count_ic_definitions(void);
+static bool ic_definition_search_restart(void);
+static bool ic_definition_search_next(void);
 
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, command_hub_status *hub_status) {
     switch(cmd->type) {
@@ -66,7 +68,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
                 handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
             }  else {
                 uint cmd_list_size;
-                cmd_list_entry* cmds = ic_handlers.get_commands(&cmd_list_size);
+                const cmd_list_entry* cmds = ic_handlers.get_commands(&cmd_list_size);
                 // Return the command list and its size
                 xQueueSend(resp_queue, (void*)& ((command_hub_cmd_resp){
                     .id = cmd->id,
@@ -102,26 +104,50 @@ static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t
 
 static uint count_ic_definitions(void) {
     uint count = 0;
-    memset(pxFindStruct, 0x00, sizeof(FF_FindData_t));
 
+    if(ic_definition_search_restart()) {
+        count++;
+        while(ic_definition_search_next()) count++;
+    }
+
+    return count;
+}
+
+static bool ic_definition_search_restart(void) {
+    memset(pxFindStruct, 0x00, sizeof(FF_FindData_t));
     if(ff_findfirst(SD_DEFS_PATH, pxFindStruct) == 0) {
         do {
             if(!(pxFindStruct->ucAttributes & FF_FAT_ATTR_DIR)) {
                 size_t fname_len = strnlen(pxFindStruct->pcFileName, 30);
                 if(pxFindStruct->ulFileSize == sizeof(IC_Ctrl_Struct) && 
                     strncmp(DEF_EXT, pxFindStruct->pcFileName + (fname_len - (sizeof(DEF_EXT) - 1)), sizeof(DEF_EXT) - 1) == 0) { 
-                    count++;
+                    D_PRINTF("%s [size=%d]\n", pxFindStruct->pcFileName, pxFindStruct->ulFileSize);
+                    return true;
+                } else { // Skipped!
+                    D_PRINTF("%s [size=%d] - SKIPPED!\n", pxFindStruct->pcFileName, pxFindStruct->ulFileSize);
                 }
-            
-                // Print name and size
-                D_PRINTF("%s [size=%d]\n", pxFindStruct->pcFileName, pxFindStruct->ulFileSize);
             }
         } while(ff_findnext(pxFindStruct) == 0);
     }
 
-    D_PRINTF("Found %u definitions\n", count);
+    return false;
+}
 
-    return count;
+static bool ic_definition_search_next(void) {
+    while(ff_findnext(pxFindStruct) == 0) {
+        if(!(pxFindStruct->ucAttributes & FF_FAT_ATTR_DIR)) {
+            size_t fname_len = strnlen(pxFindStruct->pcFileName, 30);
+            if(pxFindStruct->ulFileSize == sizeof(IC_Ctrl_Struct) && 
+                strncmp(DEF_EXT, pxFindStruct->pcFileName + (fname_len - (sizeof(DEF_EXT) - 1)), sizeof(DEF_EXT) - 1) == 0) { 
+                D_PRINTF("%s [size=%d]\n", pxFindStruct->pcFileName, pxFindStruct->ulFileSize);
+                return true;
+            } else { // Skipped!
+                D_PRINTF("%s [size=%d] - SKIPPED!\n", pxFindStruct->pcFileName, pxFindStruct->ulFileSize);
+            }
+        }
+    };
+
+    return false;
 }
 
 static bool initialize_SD_iface(void) {

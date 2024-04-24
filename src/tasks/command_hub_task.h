@@ -23,7 +23,7 @@ typedef enum {
 } command_hub_cmd_response_type;
 
 typedef struct {
-    cmd_list_entry *cmds;
+    const cmd_list_entry *cmds;
     uint size;
 } command_hub_cmd_resp_cmdlist;
 
