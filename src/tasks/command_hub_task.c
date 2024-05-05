@@ -78,7 +78,20 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             }
             break;
         case CMDH_SUPPORTED_IC_LIST_NEXT:
-            // TODO: Return the next definition on the list of supported ICs. If the list is at the end, return the same
+            // Return the next definition on the list of supported ICs. If the list is at the end, return the same
+            ic_definition_search_next(); // For the sake of simplification, we don't care if we're re-reading the same definition, for now.
+            if(load_ic_definition(pxFindStruct->pcFileName, &cur_ic_definition)) {
+                xQueueSend(resp_queue, (void*)& ((command_hub_cmd_resp){
+                    .id = cmd->id,
+                    .type = CMDH_RESP_OK,
+                    .data = (command_hub_cmd_resp_data) {
+                        .iccd = cur_ic_definition
+                    }
+                }), portMAX_DELAY);
+            } else { // Failed loading the definition
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+            }   
+            break;
         case CMDH_SUPPORTED_IC_LIST_SELECT:
             // TODO: Select the current IC definition, retrieve the handlers for it
         case CMDH_SELECTED_IC_GET_CMD_LIST:
