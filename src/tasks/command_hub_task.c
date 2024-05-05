@@ -42,6 +42,7 @@ static bool initialize_SD_iface(void);
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, command_hub_status *hub_status);
 static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint32_t data);
 static uint count_ic_definitions(void);
+static bool load_ic_definition(const char *fname, IC_Ctrl_Struct* def_buffer);
 static bool ic_definition_search_restart(void);
 static bool ic_definition_search_next(void);
 
@@ -58,11 +59,23 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, count_ic_definitions());
             break;
         case CMDH_SUPPORTED_IC_BEGIN_LIST:
+            // Point to the first definition of the supported ICs, return it
             if(!ic_definition_search_restart()) {
                 // We found no defintions!!!
                 handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+            } else {
+                if(load_ic_definition(pxFindStruct->pcFileName, &cur_ic_definition)) {
+                    xQueueSend(resp_queue, (void*)& ((command_hub_cmd_resp){
+                        .id = cmd->id,
+                        .type = CMDH_RESP_OK,
+                        .data = (command_hub_cmd_resp_data) {
+                            .iccd = cur_ic_definition
+                        }
+                    }), portMAX_DELAY);
+                } else { // Failed loading the definition
+                    handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                }      
             }
-            // TODO: Point to the first definition of the supported ICs, return it
             break;
         case CMDH_SUPPORTED_IC_LIST_NEXT:
             // TODO: Return the next definition on the list of supported ICs. If the list is at the end, return the same
@@ -71,7 +84,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
         case CMDH_SELECTED_IC_GET_CMD_LIST:
             if(*hub_status != READY) {
                 handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
-            }  else {
+            } else {
                 uint cmd_list_size;
                 const cmd_list_entry* cmds = ic_handlers.get_commands(&cmd_list_size);
                 // Return the command list and its size
@@ -118,6 +131,29 @@ static uint count_ic_definitions(void) {
     D_PRINTF("Found %u definition(s)!\n", count);
 
     return count;
+}
+
+static bool load_ic_definition(const char *fname, IC_Ctrl_Struct* def_buffer) {
+    bool result = false;
+
+    // Move to the directory containing the definitions
+    ff_chdir(SD_DEFS_PATH);
+
+    FF_FILE *def_file = ff_fopen(fname, "r");
+    if(def_file) {
+        if(ff_fread((void*)def_buffer, sizeof(IC_Ctrl_Struct), 1, def_file) != 1) {
+            D_PRINTF("Failed reading the definition %s!!!\n", fname);
+        } else {
+            result = true;
+        }
+        ff_fclose(def_file);
+    } else {
+        D_PRINTF("Unable to open definition file %s!!!\n", fname);
+    }
+
+    // Move back to the root
+    ff_chdir(SD_FS);
+    return result;
 }
 
 static bool ic_definition_search_restart(void) {
