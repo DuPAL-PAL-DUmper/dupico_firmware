@@ -108,7 +108,7 @@ static const cmd_list_entry* get_cmd_list(uint* len) {
     return cmd_entries;
 }
 
-const handler_funcs build_generic_ic_handler() {
+handler_funcs build_generic_ic_handler() {
     return (handler_funcs){
         .exec_command = executor,
         .get_commands = get_cmd_list

@@ -56,12 +56,24 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, 0);
             break;
         case CMDH_SUPPORTED_IC_COUNT:
+            if(*hub_status != WAITING_FOR_IC) {
+                // We must not have a definition loaded or be in an error state
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                break;
+            }
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, count_ic_definitions());
             break;
         case CMDH_SUPPORTED_IC_BEGIN_LIST:
+            if(*hub_status != WAITING_FOR_IC) {
+                // We must not have a definition loaded or be in an error state
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                break;
+            }
+
             // Point to the first definition of the supported ICs, return it
             if(!ic_definition_search_restart()) {
                 // We found no defintions!!!
+                *hub_status = ERROR;
                 handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
             } else {
                 if(load_ic_definition(pxFindStruct->pcFileName, &cur_ic_definition)) {
@@ -73,11 +85,18 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
                         }
                     }), portMAX_DELAY);
                 } else { // Failed loading the definition
+                    *hub_status = ERROR;
                     handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
                 }      
             }
             break;
         case CMDH_SUPPORTED_IC_LIST_NEXT:
+            if(*hub_status != WAITING_FOR_IC) {
+                // We must not have a definition loaded or be in an error state
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                break;
+            }
+
             // Return the next definition on the list of supported ICs. If the list is at the end, return the same
             ic_definition_search_next(); // For the sake of simplification, we don't care if we're re-reading the same definition, for now.
             if(load_ic_definition(pxFindStruct->pcFileName, &cur_ic_definition)) {
@@ -89,29 +108,42 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
                     }
                 }), portMAX_DELAY);
             } else { // Failed loading the definition
+                *hub_status = ERROR;
                 handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
             }   
             break;
         case CMDH_SUPPORTED_IC_LIST_SELECT:
-            // TODO: Select the current IC definition, retrieve the handlers for it
+            if(*hub_status != WAITING_FOR_IC) {
+                // We must not have a definition loaded or be in an error state
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                break;
+            }
+
+            // Select the current IC definition, retrieve the handlers for it, send a positive response including the chip type
+            ic_handlers = get_handlers_for_IC_type(cur_ic_definition.chip_type);
+            *hub_status = READY;
+            handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, cur_ic_definition.chip_type);
+            break;
         case CMDH_SELECTED_IC_GET_CMD_LIST:
             if(*hub_status != READY) {
                 handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
-            } else {
-                uint cmd_list_size;
-                const cmd_list_entry* cmds = ic_handlers.get_commands(&cmd_list_size);
-                // Return the command list and its size
-                xQueueSend(resp_queue, (void*)& ((command_hub_cmd_resp){
-                    .id = cmd->id,
-                    .type = CMDH_RESP_OK,
-                    .data = (command_hub_cmd_resp_data) {
-                        .cmdlist = (command_hub_cmd_resp_cmdlist) {
-                            .cmds = cmds,
-                            .size = cmd_list_size
-                        }
-                    }
-                }), portMAX_DELAY);                
+                break;
             }
+            
+            uint cmd_list_size;
+            const cmd_list_entry* cmds = ic_handlers.get_commands(&cmd_list_size);
+            // Return the command list and its size
+            xQueueSend(resp_queue, (void*)& ((command_hub_cmd_resp){
+                .id = cmd->id,
+                .type = CMDH_RESP_OK,
+                .data = (command_hub_cmd_resp_data) {
+                    .cmdlist = (command_hub_cmd_resp_cmdlist) {
+                        .cmds = cmds,
+                        .size = cmd_list_size
+                    }
+                }
+            }), portMAX_DELAY);                
+
             break;
         case CMDH_SELECTED_IC_EXEC_CMD:
             // TODO: Execute the included command for said IC in a specialized command task
