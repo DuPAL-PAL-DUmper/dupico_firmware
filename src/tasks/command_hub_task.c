@@ -58,7 +58,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
         case CMDH_SUPPORTED_IC_COUNT:
             if(*hub_status != WAITING_FOR_IC) {
                 // We must not have a definition loaded or be in an error state
-                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, *hub_status);
                 break;
             }
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, count_ic_definitions());
@@ -66,7 +66,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
         case CMDH_SUPPORTED_IC_BEGIN_LIST:
             if(*hub_status != WAITING_FOR_IC) {
                 // We must not have a definition loaded or be in an error state
-                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, *hub_status);
                 break;
             }
 
@@ -93,7 +93,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
         case CMDH_SUPPORTED_IC_LIST_NEXT:
             if(*hub_status != WAITING_FOR_IC) {
                 // We must not have a definition loaded or be in an error state
-                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, *hub_status);
                 break;
             }
 
@@ -115,7 +115,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
         case CMDH_SUPPORTED_IC_LIST_SELECT:
             if(*hub_status != WAITING_FOR_IC) {
                 // We must not have a definition loaded or be in an error state
-                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, *hub_status);
                 break;
             }
 
@@ -126,7 +126,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             break;
         case CMDH_SELECTED_IC_GET_CMD_LIST:
             if(*hub_status != READY) {
-                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, *hub_status);
                 break;
             }
             
@@ -146,8 +146,14 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
 
             break;
         case CMDH_SELECTED_IC_EXEC_CMD:
+            if(*hub_status != READY) {
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, *hub_status);
+                break;
+            }
             // TODO: Execute the included command for said IC in a specialized command task
             // TODO: Commands must be offloaded to another task, which will send updates through the cmd_status_update queue
+
+            break;
         default:
             *hub_status = ERROR;
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
