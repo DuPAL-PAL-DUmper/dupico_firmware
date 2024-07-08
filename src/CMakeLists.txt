@@ -10,8 +10,6 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} 
     pico_stdlib
     FreeRTOS-Kernel-Heap4 # FreeRTOS kernel and dynamic heap
-    FreeRTOS+FAT+CLI
-    hardware_i2c
 )
 
 

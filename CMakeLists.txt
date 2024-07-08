@@ -21,9 +21,6 @@ add_compile_definitions(USE_D_PRINTF=1)
 # Add subdirectories for project
 add_subdirectory(src)
 
-# Add subdirectories for external projects
-add_subdirectory(external/FreeRTOS-FAT-CLI-for-RPi-Pico/src/FreeRTOS+FAT+CLI)
-
 target_compile_definitions(${PROJECT_NAME} INTERFACE
     NO_SYS=0
     FREE_RTOS_KERNEL_SMP=1
