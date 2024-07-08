@@ -5,6 +5,8 @@
 
 #include <common_macros.h>
 
+#include <sys/sys.h>
+
 #include <utils/custom_debug.h>
 
 #include <tasks/interface_tasks/cli_interface_task.h>
@@ -47,7 +49,7 @@ static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t
 void command_hub_task(void *params) {
 
     command_hub_status status = BUSY;
-    TaskHandle_t cli_interface_t_handle;
+    TaskHandle_t cli_interface_t_handle, shifter_io_t_handle;
     
     command_hub_cmd cmd;
 
@@ -60,19 +62,34 @@ void command_hub_task(void *params) {
 
     shifter_io_task_params shifter_params = {
         .piso_cfg = {
-
+            .ce_pin = PISO_INH_GPIO,
+            .pe_pin = PISO_SH_GPIO,
+            .clk_pin = PISO_CLK_GPIO,
+            .clr_pin = PISO_CLR_GPIO,
+            .ser_pin = PISO_SER_GPIO,
+            .len = 40
         },
         .sipo_cfg = {
-
+            .oe_pin = SIPO_OE_GPIO,
+            .rclk_pin = SIPO_RCLK_GPIO,
+            .ser_pin = SIPO_SER_GPIO,
+            .srclk_pin = SIPO_CLK_GPIO,
+            .srclr_pin = SIPO_CLR_GPIO,
+            .len = 40
         },
         .cmd_queue = xQueueCreate(1, sizeof(shifter_io_task_cmd)),
         .resp_queue = xQueueCreate(1, sizeof(uint64_t))
     };
 
+    // Create and start the task to handle SIPO/PISO interfacing
+    xTaskCreate(shifter_io_task, "ShifterIOTask", configMINIMAL_STACK_SIZE, (void*)&shifter_params, BASELINE_TASK_PRIORITY, &shifter_io_t_handle);
+
     // Create and start the tasks to handle CLI interface
     xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
 
     status = READY;
+
+    // TODO: handle turning on and off the relay. Keep this in some state? Or check the GPIO?
 
     while(true) {
         // Receive commands from the CLI
