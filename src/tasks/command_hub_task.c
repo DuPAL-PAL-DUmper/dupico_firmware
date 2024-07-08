@@ -1,5 +1,7 @@
 #include "command_hub_task.h"
 
+#include "pico/stdlib.h"
+
 #include <task.h>
 #include <stdint.h>
 
@@ -20,32 +22,34 @@ typedef enum {
 
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, const shifter_io_task_params* shifter_params, command_hub_status *hub_status);
 static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint32_t data);
-
+static bool reset_task(const shifter_io_task_params* shifter_params);
 static void toggle_relay(bool state);
+
+static bool reset_task(const shifter_io_task_params* shifter_params) {
+    uint64_t shft_data;
+
+    // Reset the status of the SIPO/PISO/Socket VCC
+    toggle_relay(false); // Cut power to the socket
+    xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
+        .cmd = SHF_WRITE,
+        .param = 0
+    }), portMAX_DELAY);
+
+    // Wait for the response
+    return xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), portMAX_DELAY) == pdTRUE;
+}
 
 static void toggle_relay(bool state) {
     gpio_put(RELAY_ENABLE_GPIO, !state);
 }
+
 
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, const shifter_io_task_params* shifter_params, command_hub_status *hub_status) {
     uint64_t shft_data;
 
     switch(cmd->type) {
         case CMDH_RESET:
-            // Reset the status of the SIPO/PISO/Socket VCC
-            toggle_relay(false); // Cut power to the socket
-            xQueueSend(resp_queue, (void*)& ((shifter_io_task_cmd){
-                .cmd = SHF_WRITE,
-                .param = 0
-            }), portMAX_DELAY);
-
-            // Wait for the response
-            if(xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), 0)) {
-                *hub_status = READY;
-            } else { // We did not get a response...
-                *hub_status = ERROR;
-            }
-
+            *hub_status = reset_task(shifter_params) ? READY : ERROR;
             handle_inbound_commands_simple_response(cmd->id, resp_queue, hub_status == READY ? CMDH_RESP_OK : CMDH_RESP_ERROR, 0);
             break;
         default:
@@ -67,8 +71,6 @@ static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t
 }
 
 void command_hub_task(void *params) {
-
-    command_hub_status status = BUSY;
     TaskHandle_t cli_interface_t_handle, shifter_io_t_handle;
     
     command_hub_cmd cmd;
@@ -107,7 +109,7 @@ void command_hub_task(void *params) {
     // Create and start the tasks to handle CLI interface
     xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
 
-    status = READY;
+    command_hub_status status = reset_task(&shifter_params) ? READY : ERROR;
 
     // TODO: handle turning on and off the relay. Keep this in some state? Or check the GPIO?
 
