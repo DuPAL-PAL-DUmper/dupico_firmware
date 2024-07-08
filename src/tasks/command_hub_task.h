@@ -13,12 +13,13 @@ typedef enum {
 } command_hub_cmd_response_type;
 
 typedef union {
-    uint8_t data[6];
+    uint64_t data;
 } command_hub_cmd_resp_data;
 
 typedef struct {
     command_hub_cmd_type type;
     uint32_t id;
+    uint64_t data;
 } command_hub_cmd;
 
 typedef struct {
