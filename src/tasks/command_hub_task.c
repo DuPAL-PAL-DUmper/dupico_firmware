@@ -18,18 +18,38 @@ typedef enum {
     ERROR
 } command_hub_status;
 
-static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, command_hub_status *hub_status);
+static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, const shifter_io_task_params* shifter_params, command_hub_status *hub_status);
 static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint32_t data);
 
-static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, command_hub_status *hub_status) {
+static void toggle_relay(bool state);
+
+static void toggle_relay(bool state) {
+    gpio_put(RELAY_ENABLE_GPIO, !state);
+}
+
+static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, const shifter_io_task_params* shifter_params, command_hub_status *hub_status) {
+    uint64_t shft_data;
+
     switch(cmd->type) {
         case CMDH_RESET:
-            // TODO: Reset the status of the SIPO/PISO/Socket VCC
-            *hub_status = READY;
-            // TODO: Reset the statuses of the tasks, both command execution and interface
-            handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, 0);
+            // Reset the status of the SIPO/PISO/Socket VCC
+            toggle_relay(false); // Cut power to the socket
+            xQueueSend(resp_queue, (void*)& ((shifter_io_task_cmd){
+                .cmd = SHF_WRITE,
+                .param = 0
+            }), portMAX_DELAY);
+
+            // Wait for the response
+            if(xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), 0)) {
+                *hub_status = READY;
+            } else { // We did not get a response...
+                *hub_status = ERROR;
+            }
+
+            handle_inbound_commands_simple_response(cmd->id, resp_queue, hub_status == READY ? CMDH_RESP_OK : CMDH_RESP_ERROR, 0);
             break;
         default:
+            toggle_relay(false); // Cut power to the socket
             *hub_status = ERROR;
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
             break;
@@ -94,7 +114,7 @@ void command_hub_task(void *params) {
     while(true) {
         // Receive commands from the CLI
         while(xQueueReceive(cli_queues.cmd_queue, (void*)&(cmd), 0)) {
-            handle_inbound_commands(&cmd, cli_queues.resp_queue, &status);
+            handle_inbound_commands(&cmd, cli_queues.resp_queue, &shifter_params, &status);
         }
 
         taskYIELD();
