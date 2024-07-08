@@ -14,7 +14,7 @@
 
 #define MAIN_TASK_PRIORITY				( tskIDLE_PRIORITY + 1UL )
 
-const uint8_t led_pin = LED_PIN;
+const uint8_t led_pin = LED_GPIO;
 
 static void statusDebug() {
     uint16_t tot_tasks = uxTaskGetNumberOfTasks();

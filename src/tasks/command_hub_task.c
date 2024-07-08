@@ -8,6 +8,7 @@
 #include <utils/custom_debug.h>
 
 #include <tasks/interface_tasks/cli_interface_task.h>
+#include <tasks/shifter_io_task.h>
 
 typedef enum {
     READY,
@@ -57,8 +58,21 @@ void command_hub_task(void *params) {
         .resp_queue = xQueueCreate(1, sizeof(command_hub_cmd_resp))
     };
 
+    shifter_io_task_params shifter_params = {
+        .piso_cfg = {
+
+        },
+        .sipo_cfg = {
+
+        },
+        .cmd_queue = xQueueCreate(1, sizeof(shifter_io_task_cmd)),
+        .resp_queue = xQueueCreate(1, sizeof(uint64_t))
+    };
+
     // Create and start the tasks to handle CLI interface
     xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
+
+    status = READY;
 
     while(true) {
         // Receive commands from the CLI
