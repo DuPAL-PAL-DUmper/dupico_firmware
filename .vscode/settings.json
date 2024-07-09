@@ -47,6 +47,7 @@
         "stdio.h": "c",
         "tusb.h": "c",
         "cdc_device.h": "c",
-        "msc_device.h": "c"
+        "msc_device.h": "c",
+        "stdio_uart.h": "c"
     }
 }

@@ -118,7 +118,8 @@ void command_hub_task(void *params) {
     xTaskCreate(shifter_io_task, "ShifterIOTask", configMINIMAL_STACK_SIZE, (void*)&shifter_params, BASELINE_TASK_PRIORITY, &shifter_io_t_handle);
 
     // Create and start the task to handle CLI interface
-    xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE * 3, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
+    xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE * 2, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
+    //vTaskCoreAffinitySet(cli_interface_t_handle, (1 << 1));
 
     // Create and start the task to handle the status led
     xTaskCreate(led_status_task, "LEDStatusTask", configMINIMAL_STACK_SIZE, (void*)&lstatus_params, BASELINE_TASK_PRIORITY, &lstatus_t_handle);

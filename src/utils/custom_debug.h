@@ -3,6 +3,7 @@
 
 #include "pico/stdio/driver.h"
 #include "pico/stdio_usb.h"
+#include "pico/stdio_uart.h"
 
 int retarg_printf(const stdio_driver_t *driver, const char *fmt, ...);
 

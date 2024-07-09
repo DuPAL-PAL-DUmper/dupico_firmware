@@ -17,8 +17,6 @@ void shifter_io_task(void *params) {
 
     // Task loop
     while(keep_going) {
-        D_PRINTF("Shifter IO task loop\r\n");
-
         if(xQueueReceive(prms->cmd_queue, (void*)&cmd, portMAX_DELAY)) {
             switch(cmd.cmd) {
                 case SHF_WRITE:

@@ -6,8 +6,9 @@
 #include <queue.h>
 #include <task.h>
 
-#include "tasks/command_hub_task.h"
+#include "pico/stdio_usb.h"
 
+#include "tasks/command_hub_task.h"
 #include "utils/custom_debug.h"
 
 #define VERSION "0.0.1"
@@ -76,29 +77,28 @@ void cli_interface_task(void *params) {
                 USB_PRINTF(SOFT_HEADER);
                 USB_PRINTF("REMOTE_CONTROL_ENABLED\r\n");
             }
+        }
 
-            if(term_connected_state && (ch = getchar_timeout_us(0) >= 0)) {
-                D_PRINTF("Got %x\r\n", ch);
-                switch(ch) {
-                    case PKT_START:
-                        memset(cmd_buffer, 0, CMD_BUFFER_SIZE);
-                        buf_idx = 0;
-                        receiving_cmd = true;
-                        break;
-                    case PKT_END:
-                        if(receiving_cmd && buf_idx) {
-                            // Parse and react to command
-                            cli_parse_command(cmd_buffer, queues);
-                        }
-                        receiving_cmd = false;
-                        buf_idx = 0;
-                        break;
-                    default:
-                        if(receiving_cmd && (buf_idx < (CMD_BUFFER_SIZE - 1))) { // Leave one empty space for a null
-                            cmd_buffer[buf_idx++] = ch & 0xFF;
-                        }
-                        break;
-                }
+        if(term_connected_state && ((ch = getchar_timeout_us(0)) >= 0)) {
+            switch(ch) {
+                case PKT_START:
+                    memset(cmd_buffer, 0, CMD_BUFFER_SIZE);
+                    buf_idx = 0;
+                    receiving_cmd = true;
+                    break;
+                case PKT_END:
+                    if(receiving_cmd && buf_idx) {
+                        // Parse and react to command
+                        cli_parse_command(cmd_buffer, queues);
+                    }
+                    receiving_cmd = false;
+                    buf_idx = 0;
+                    break;
+                default:
+                    if(receiving_cmd && (buf_idx < (CMD_BUFFER_SIZE - 1))) { // Leave one empty space for a null
+                        cmd_buffer[buf_idx++] = ch & 0xFF;
+                    }
+                    break;
             }
         }
 

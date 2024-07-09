@@ -1,6 +1,7 @@
 #include "sys.h"
 
 #include "pico/stdlib.h"
+#include "hardware/uart.h"
 #include "pico/stdio_usb.h"
 #include "pico/stdio_uart.h"
 
@@ -15,5 +16,5 @@ void sys_init(void) {
 
     // Initialize chosen serial port
     stdio_init_all();
-    stdio_filter_driver(&stdio_usb);
+    stdio_filter_driver(&stdio_usb); // Filter inputs for USB only
 }
