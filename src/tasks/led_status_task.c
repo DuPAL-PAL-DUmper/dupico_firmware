@@ -5,9 +5,6 @@
 #define READY_DELAY_OFF 1000
 #define READY_DELAY_ON 100
 
-#define BUSY_DELAY_ON 100
-#define BUSY_DELAY_OFF 100
-
 #define ERROR_DELAY_ON 1000
 #define ERROR_DELAY_OFF 1000
 
@@ -33,9 +30,6 @@ void led_status_task(void *params) {
         switch(cmd.type) {
             case CMD_LSTAT_READY:
                 delay = led_on ? READY_DELAY_OFF : READY_DELAY_ON; 
-                break;
-            case CMD_LSTAT_BUSY:
-                delay = led_on ? BUSY_DELAY_OFF : BUSY_DELAY_ON; 
                 break;
             case CMD_LSTAT_ERROR:
             default:

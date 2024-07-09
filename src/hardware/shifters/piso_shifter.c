@@ -6,6 +6,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "utils/custom_debug.h"
+
 #define DEFAULT_DELAY 2
 
 void piso_shifter_init(const PISO_Config* cfg) {
@@ -61,8 +63,8 @@ uint64_t piso_shifter_get(const PISO_Config* cfg) {
         vTaskDelay(DEFAULT_DELAY);
         gpio_put(cfg->clk_pin, true); // Clock out the data
         vTaskDelay(DEFAULT_DELAY);
-        
-        data |= gpio_get(cfg->ser_pin) ? (1ULL << idx) : 0;
+
+        data |= gpio_get(cfg->ser_pin) ? (((uint64_t)1) << idx) : 0;
         
         gpio_put(cfg->clk_pin, false); 
     }

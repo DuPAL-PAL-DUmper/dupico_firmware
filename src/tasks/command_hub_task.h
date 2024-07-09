@@ -4,7 +4,11 @@
 #include <FreeRTOS.h>
 #include <queue.h>
 typedef enum {
-    CMDH_RESET
+    CMDH_RESET,
+    CMDH_FORCE_ERROR,
+    CMDH_WRITE_PINS,
+    CMDH_READ_PINS,
+    CMDH_TOGGLE_POWER
 } command_hub_cmd_type;
 
 typedef enum {

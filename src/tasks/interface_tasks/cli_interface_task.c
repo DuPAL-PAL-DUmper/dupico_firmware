@@ -10,6 +10,7 @@
 
 #include "tasks/command_hub_task.h"
 #include "utils/custom_debug.h"
+#include "utils/strutils.h"
 
 #define VERSION "0.0.1"
 #define SOFT_HEADER "\nDuPICO - " VERSION "\n\n\r"
@@ -24,10 +25,9 @@
 
 #define CMD_WRITE 'W'
 #define CMD_READ 'R'
-#define CMD_EXIT 'X'
 #define CMD_RESET 'K'
+#define CMD_POWER 'P'
 #define CMD_MODEL 'M'
-#define CMD_LED 'L'
 
 #define RESP_ERROR "CMD_ERR\n\r"
 #define RESP_MODEL "[M " MODEL "]\n\r"
@@ -107,15 +107,83 @@ void cli_interface_task(void *params) {
 }
 
 static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues) {
+    command_hub_cmd_resp cmdh_resp;
+
     switch(cmd_buffer[0]) {
         case CMD_MODEL:
             USB_PRINTF(RESP_MODEL);
             break;
-        case CMD_READ:
-        case CMD_WRITE:
-        case CMD_LED:
         case CMD_RESET:
-        case CMD_EXIT:
+            D_PRINTF("Forcing an error state in the command hub...\r\n");
+            xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+                .type = CMDH_FORCE_ERROR,
+                .data = 0,
+                .id = 0
+            }), portMAX_DELAY);
+            xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
+            break;
+        case CMD_POWER: {
+                bool relay_pwr = strutils_str_to_u8(&cmd_buffer[2]) & 0x01;
+
+                cmd_buffer[0] = RESP_START;
+                cmd_buffer[1] = CMD_POWER;
+                cmd_buffer[2] = ' ';
+                strutils_u8_to_str(&cmd_buffer[3], relay_pwr ? 1 : 0);
+                cmd_buffer[5] = RESP_END;
+                cmd_buffer[6] = '\r';
+                cmd_buffer[7] = '\n';
+                cmd_buffer[8] = 0;
+
+                xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+                    .type = CMDH_TOGGLE_POWER,
+                    .data = relay_pwr,
+                    .id = 0
+                }), portMAX_DELAY);
+                xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
+
+                USB_PRINTF(cmd_buffer);
+            }
+            break;
+        case CMD_READ: {
+                xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+                    .type = CMDH_READ_PINS,
+                    .data = 0,
+                    .id = 0
+                }), portMAX_DELAY);
+                xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
+
+                cmd_buffer[0] = RESP_START;
+                cmd_buffer[1] = CMD_READ;
+                cmd_buffer[2] = ' ';
+                strutils_u64_to_str(&cmd_buffer[3], cmdh_resp.data.data);
+                cmd_buffer[19] = RESP_END;
+                cmd_buffer[20] = '\r';
+                cmd_buffer[21] = '\n';
+                cmd_buffer[22] = 0;
+                
+                USB_PRINTF(cmd_buffer);
+            }
+            break;
+        case CMD_WRITE: {
+                xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+                    .type = CMDH_WRITE_PINS,
+                    .data = strutils_str_to_u64(&cmd_buffer[2]),
+                    .id = 0
+                }), portMAX_DELAY);
+                xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
+
+                cmd_buffer[0] = RESP_START;
+                cmd_buffer[1] = CMD_WRITE;
+                cmd_buffer[2] = ' ';
+                strutils_u64_to_str(&cmd_buffer[3], cmdh_resp.data.data);
+                cmd_buffer[19] = RESP_END;
+                cmd_buffer[20] = '\r';
+                cmd_buffer[21] = '\n';
+                cmd_buffer[22] = 0;
+                
+                USB_PRINTF(cmd_buffer);
+            }   
+            break;
         default:
             USB_PRINTF(RESP_ERROR);
             break;

@@ -8,8 +8,7 @@
 
 typedef enum {
     CMD_LSTAT_READY,
-    CMD_LSTAT_ERROR,
-    CMD_LSTAT_BUSY
+    CMD_LSTAT_ERROR
 } led_status_cmd_type;
 
 typedef struct {

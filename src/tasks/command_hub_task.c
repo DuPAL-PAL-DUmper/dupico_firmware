@@ -1,6 +1,7 @@
 #include "command_hub_task.h"
 
 #include "pico/stdlib.h"
+#include "hardware/watchdog.h"
 
 #include <task.h>
 #include <stdint.h>
@@ -17,12 +18,11 @@
 
 typedef enum {
     READY,
-    BUSY,
     ERROR
 } command_hub_status;
 
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, const shifter_io_task_params* shifter_params, const led_status_task_params* lstatus_params, command_hub_status *hub_status);
-static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint32_t data);
+static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint64_t data);
 static bool reset_task(const shifter_io_task_params* shifter_params, const led_status_task_params* lstatus_params);
 static void toggle_relay(bool state);
 
@@ -58,15 +58,60 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             *hub_status = reset_task(shifter_params, lstatus_params) ? READY : ERROR;
             handle_inbound_commands_simple_response(cmd->id, resp_queue, *hub_status == READY ? CMDH_RESP_OK : CMDH_RESP_ERROR, 0);
             break;
-        default:
+        case CMDH_FORCE_ERROR:
             toggle_relay(false); // Cut power to the socket
             *hub_status = ERROR;
+            handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, 0); // Command recognized, even if it is intended to create an artificial error
+            break;
+        case CMDH_READ_PINS:
+            D_PRINTF("Got a READ request\r\n");
+
+            xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
+                .cmd = SHF_READ,
+                .param = 0
+            }), portMAX_DELAY);
+
+            if(xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), portMAX_DELAY) == pdTRUE) {
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, shft_data);
+            } else {
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                *hub_status = ERROR;
+            }
+
+            break;
+        case CMDH_WRITE_PINS:
+            D_PRINTF("Got a WRITE request %.8X\r\n", cmd->data);
+
+            xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
+                .cmd = SHF_WRITE,
+                .param = cmd->data
+            }), portMAX_DELAY);
+
+            if(xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), portMAX_DELAY) == pdTRUE) {
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, shft_data);
+            } else {
+                handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
+                *hub_status = ERROR;
+            }
+
+            break;
+        case CMDH_TOGGLE_POWER:
+            D_PRINTF("Got a relay toggle command %u\r\n", cmd->data);
+            toggle_relay(cmd->data > 0);
+            handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_OK, 0);
+            break;
+        default:
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
             break;
     }
+
+    // Update the status led
+    xQueueSend(lstatus_params->cmd_queue, (void*)& ((led_status_task_cmd){
+        .type = (*hub_status == READY) ? CMD_LSTAT_READY : CMD_LSTAT_ERROR
+    }), portMAX_DELAY);
 }
 
-static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint32_t data) {
+static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint64_t data) {
     xQueueSend(resp_queue, (void*)& ((command_hub_cmd_resp){
         .id = id,
         .type = resp,
@@ -133,6 +178,8 @@ void command_hub_task(void *params) {
         while(xQueueReceive(cli_queues.cmd_queue, (void*)&(cmd), 0)) {
             handle_inbound_commands(&cmd, cli_queues.resp_queue, &shifter_params, &lstatus_params, &status);
         }
+
+        if(status != ERROR) watchdog_update();
 
         taskYIELD();
     }
