@@ -56,7 +56,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
     switch(cmd->type) {
         case CMDH_RESET:
             *hub_status = reset_task(shifter_params, lstatus_params) ? READY : ERROR;
-            handle_inbound_commands_simple_response(cmd->id, resp_queue, hub_status == READY ? CMDH_RESP_OK : CMDH_RESP_ERROR, 0);
+            handle_inbound_commands_simple_response(cmd->id, resp_queue, *hub_status == READY ? CMDH_RESP_OK : CMDH_RESP_ERROR, 0);
             break;
         default:
             toggle_relay(false); // Cut power to the socket
@@ -118,7 +118,7 @@ void command_hub_task(void *params) {
     xTaskCreate(shifter_io_task, "ShifterIOTask", configMINIMAL_STACK_SIZE, (void*)&shifter_params, BASELINE_TASK_PRIORITY, &shifter_io_t_handle);
 
     // Create and start the task to handle CLI interface
-    xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE * 2, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
+    xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE * 3, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
 
     // Create and start the task to handle the status led
     xTaskCreate(led_status_task, "LEDStatusTask", configMINIMAL_STACK_SIZE, (void*)&lstatus_params, BASELINE_TASK_PRIORITY, &lstatus_t_handle);
