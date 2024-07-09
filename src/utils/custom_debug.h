@@ -1,6 +1,10 @@
 #ifndef _CUSTOM_DEBUG_
 #define _CUSTOM_DEBUG_
 
+#include "pico/stdio/driver.h"
+
+int retarg_printf(const stdio_driver_t *driver, const char *fmt, ...);
+
 int __attribute__((weak)) dbg_printf(const char *func, int line, const char *fmt, ...);
 
 #ifndef D_PRINTF

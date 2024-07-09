@@ -34,7 +34,7 @@ static void statusDebug() {
             // ulTotalRunTime has already been divided by 100.
             hwMark = uxTaskGetStackHighWaterMark(pxTaskStatusArray[x].xHandle);
 
-            D_PRINTF("\t[%3u] \"%15s\" - bPri:%2u cPri:%2u  hw:%4lu\n",
+            D_PRINTF("\t[%3u] \"%15s\" - bPri:%2u cPri:%2u  hw:%4lu\r\n",
                 pxTaskStatusArray[x].xTaskNumber,
                 pxTaskStatusArray[x].pcTaskName,
                 pxTaskStatusArray[x].uxBasePriority,
@@ -44,10 +44,10 @@ static void statusDebug() {
 
         vPortFree(pxTaskStatusArray);
     } else {
-        D_PRINTF("!!!Failed allocation for task structure!!!\n");
+        D_PRINTF("!!!Failed allocation for task structure!!!\r\n");
     }
 
-    D_PRINTF("\tHEAP avl: %u, blks: %lu, min: %lu\n",
+    D_PRINTF("\tHEAP avl: %u, blks: %lu, min: %lu\r\n",
         heapStats.xAvailableHeapSpaceInBytes,
         heapStats.xNumberOfFreeBlocks,
         heapStats.xMinimumEverFreeBytesRemaining);
@@ -66,7 +66,7 @@ void main_task(__unused void *params) {
 
     while(true) {
         // Now loop indefinitely printing debug data
-        D_PRINTF("Main task loop\n");
+        D_PRINTF("Main task loop\r\n");
         statusDebug();
         vTaskDelay(10000);
     }

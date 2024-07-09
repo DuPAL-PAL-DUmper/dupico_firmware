@@ -39,6 +39,10 @@
         "ic_handlers.h": "c",
         "platform.h": "c",
         "queue.h": "c",
-        "ff_utils.h": "c"
+        "ff_utils.h": "c",
+        "driver.h": "c",
+        "printf.h": "c",
+        "custom_debug.h": "c",
+        "stdio_usb.h": "c"
     }
 }
