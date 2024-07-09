@@ -43,6 +43,10 @@
         "driver.h": "c",
         "printf.h": "c",
         "custom_debug.h": "c",
-        "stdio_usb.h": "c"
+        "stdio_usb.h": "c",
+        "stdio.h": "c",
+        "tusb.h": "c",
+        "cdc_device.h": "c",
+        "msc_device.h": "c"
     }
 }

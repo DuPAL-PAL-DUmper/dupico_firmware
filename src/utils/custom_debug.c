@@ -27,5 +27,7 @@ int __attribute__((weak)) dbg_printf(const char *func, int line, const char *fmt
     int ret = vfctprintf(out_char_driver, (void *)&stdio_uart, fmt, va);
     va_end(va);
 
+    stdio_flush();
+
     return ret;
 }
