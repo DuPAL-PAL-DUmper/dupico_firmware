@@ -52,6 +52,7 @@ void sipo_shifter_set(const SIPO_Config* cfg, uint64_t val) {
 
 static inline void toggle_SRCLK(const SIPO_Config* cfg) {
     // This will advance the shift register
+    vTaskDelay(DEFAULT_DELAY);
     gpio_put(cfg->srclk_pin, true); // set clock to high
     vTaskDelay(DEFAULT_DELAY);
     gpio_put(cfg->srclk_pin, false); // set clock to low
@@ -59,6 +60,7 @@ static inline void toggle_SRCLK(const SIPO_Config* cfg) {
 
 static inline void toggle_RCLK(const SIPO_Config* cfg) {
     // This will store the data in the shift register
+    vTaskDelay(DEFAULT_DELAY);
     gpio_put(cfg->rclk_pin, true); // set clock to high
     vTaskDelay(DEFAULT_DELAY);
     gpio_put(cfg->rclk_pin, false); // set clock to low

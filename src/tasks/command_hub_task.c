@@ -31,6 +31,7 @@ static bool reset_task(const shifter_io_task_params* shifter_params, const led_s
 
     // Reset the status of the SIPO/PISO/Socket VCC
     toggle_relay(false); // Cut power to the socket
+
     xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
         .cmd = SHF_WRITE,
         .param = 0
