@@ -28,12 +28,14 @@
 #define CMD_RESET 'K'
 #define CMD_POWER 'P'
 #define CMD_MODEL 'M'
+#define CMD_TEST 'T'
 
 #define RESP_ERROR "CMD_ERR\n\r"
 #define RESP_MODEL "[M " MODEL "]\n\r"
 
 static char cmd_buffer[CMD_BUFFER_SIZE];
 
+static bool cli_test_mode(command_hub_queues *queues);
 static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues);
 
 void cli_interface_task(void *params) {
@@ -113,6 +115,18 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
         case CMD_MODEL:
             USB_PRINTF(RESP_MODEL);
             break;
+        case CMD_TEST:
+            cmd_buffer[0] = RESP_START;
+            cmd_buffer[1] = CMD_TEST;
+            cmd_buffer[2] = ' ';
+            cmd_buffer[3] = cli_test_mode(queues) ? '1' : '0';
+            cmd_buffer[4] = RESP_END;
+            cmd_buffer[5] = '\r';
+            cmd_buffer[6] = '\n';
+            cmd_buffer[7] = 0;
+
+            USB_PRINTF(cmd_buffer);
+            break;
         case CMD_RESET:
             D_PRINTF("Forcing an error state in the command hub...\r\n");
             xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
@@ -187,5 +201,51 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
         default:
             USB_PRINTF(RESP_ERROR);
             break;
+    }       
+}
+
+static bool cli_test_mode(command_hub_queues *queues) {
+    command_hub_cmd_resp cmdh_resp;
+    uint64_t test_patterns[] = {0x0000000000ULL, 0xFFFFFFFFFFULL, 0xAAAAAAAAAAULL, 0x5555555555ULL, 0x123456789AULL, 0xA987654321ULL};
+    uint8_t tot_patterns = sizeof(test_patterns) / sizeof(test_patterns[0]);
+    bool test_result = true;
+
+    D_PRINTF("Executing test mode...\r\n");
+
+    // Enable the relay
+    D_PRINTF("Enabling the relay.\r\n");
+    xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+        .type = CMDH_TOGGLE_POWER,
+        .data = 1,
+        .id = 0
+    }), portMAX_DELAY);
+    xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
+
+    for(uint8_t idx = 0; idx < tot_patterns; idx++) {
+        D_PRINTF("Testing %.16X.\r\n", test_patterns[idx]);
+        xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+            .type = CMDH_WRITE_PINS,
+            .data = test_patterns[idx],
+            .id = 0
+        }), portMAX_DELAY);
+        xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
+
+        if(cmdh_resp.data.data != test_patterns[idx]) {
+            D_PRINTF("Failed pattern %llx, got %llx!\r\n", test_patterns[idx], cmdh_resp.data.data);
+
+            test_result = false;
+            break;
+        }
     }
+
+    // Disable the relay
+    D_PRINTF("Disabling the relay.\r\n");
+    xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+        .type = CMDH_TOGGLE_POWER,
+        .data = 0,
+        .id = 0
+    }), portMAX_DELAY);
+    xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
+
+    return test_result;
 }

@@ -7,13 +7,16 @@
 
 #define WATCHDOG_TIMEOUT 3000 // 3 seconds
 
-void sys_RELAY_init(void) {
+static void sys_RELAY_init(void);
+static void sys_WD_init(void);
+
+static void sys_RELAY_init(void) {
     gpio_init(RELAY_ENABLE_GPIO);
     gpio_set_dir(RELAY_ENABLE_GPIO, GPIO_OUT);
     gpio_put(RELAY_ENABLE_GPIO, true); // Active low. Disable the relay.
 }
 
-void sys_WD_init(void) {
+static void sys_WD_init(void) {
     watchdog_enable(WATCHDOG_TIMEOUT, true);
 }
 

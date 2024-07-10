@@ -80,7 +80,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
 
             break;
         case CMDH_WRITE_PINS:
-            D_PRINTF("Got a WRITE request %.8X\r\n", cmd->data);
+            D_PRINTF("Got a WRITE request %llx\r\n", cmd->data);
 
             xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
                 .cmd = SHF_WRITE,
