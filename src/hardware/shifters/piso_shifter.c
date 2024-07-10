@@ -8,7 +8,7 @@
 
 #include "utils/custom_debug.h"
 
-#define DEFAULT_DELAY 2
+#define DEFAULT_DELAY 1
 
 void piso_shifter_init(const PISO_Config* cfg) {
     // Init the pins

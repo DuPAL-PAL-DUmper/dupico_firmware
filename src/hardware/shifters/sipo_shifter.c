@@ -5,7 +5,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define DEFAULT_DELAY 2
+#define DEFAULT_DELAY 1
 
 static inline void toggle_SRCLK(const SIPO_Config* cfg);
 static inline void toggle_RCLK(const SIPO_Config* cfg);
