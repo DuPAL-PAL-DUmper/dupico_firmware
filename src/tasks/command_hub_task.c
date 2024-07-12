@@ -38,7 +38,7 @@ static bool reset_task(const shifter_io_task_params* shifter_params, const led_s
     }), portMAX_DELAY);
 
     xQueueSend(lstatus_params->cmd_queue, (void*)& ((led_status_task_cmd){
-        .type = CMD_LSTAT_READY
+        .type = CMD_LSTAT_WAITING
     }), portMAX_DELAY);
 
     // Wait for the response
@@ -104,11 +104,6 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             handle_inbound_commands_simple_response(cmd->id, resp_queue, CMDH_RESP_ERROR, 0);
             break;
     }
-
-    // Update the status led
-    xQueueSend(lstatus_params->cmd_queue, (void*)& ((led_status_task_cmd){
-        .type = (*hub_status == READY) ? CMD_LSTAT_READY : CMD_LSTAT_ERROR
-    }), portMAX_DELAY);
 }
 
 static void handle_inbound_commands_simple_response(uint id, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint64_t data) {
@@ -177,6 +172,13 @@ void command_hub_task(void *params) {
         // Receive commands from the CLI
         while(xQueueReceive(cli_queues.cmd_queue, (void*)&(cmd), 0)) {
             handle_inbound_commands(&cmd, cli_queues.resp_queue, &shifter_params, &lstatus_params, &status);
+
+            // Update the status led every time we have handled a command,
+            // If we're in a ready state and connected to a terminal, then we request a "CONNECTED" state to be shown,
+            // if we're ready but not connected, we'll request a "WAITING". Otherwise it's an "ERROR".
+            xQueueSend(lstatus_params.cmd_queue, (void*)& ((led_status_task_cmd){
+                .type = (status == READY) ? (stdio_usb_connected() ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR
+            }), portMAX_DELAY);
         }
 
         if(status != ERROR) watchdog_update();

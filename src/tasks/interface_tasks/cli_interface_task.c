@@ -37,14 +37,30 @@ static char cmd_buffer[CMD_BUFFER_SIZE];
 
 static bool cli_test_mode(command_hub_queues *queues);
 static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues);
+static void cli_request_reset(command_hub_queues *queues);
+
+static void cli_request_reset(command_hub_queues *queues) {
+    command_hub_cmd_resp cmdh_resp;
+
+    // Tell the command hub to reset
+    xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+        .type = CMDH_RESET,
+        .data = 0,
+        .id = 0
+    }), portMAX_DELAY);
+
+    if(!xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY)) {
+        D_PRINTF("Error requesting a reset from the command hub\r\n");
+    } else {
+        D_PRINTF("Reset from command hub responded with %u - %u\r\n", cmdh_resp.id, cmdh_resp.type);
+    }    
+}
 
 void cli_interface_task(void *params) {
     command_hub_queues *queues = (command_hub_queues*)params; 
-    command_hub_cmd_resp cmdh_resp;
 
     uint8_t buf_idx = 0;
     bool receiving_cmd = false;
-    uint32_t current_cmd_id = 0;
     bool term_connected_state = false;
     bool cur_term_connected = false;
     int ch;
@@ -55,6 +71,9 @@ void cli_interface_task(void *params) {
         if(cur_term_connected != term_connected_state) {
             term_connected_state = cur_term_connected;
 
+            // Terminal state changed, requesting a reset to the hub
+            cli_request_reset(queues);
+
             if(!term_connected_state) { // We got a disconnection from the device
                 D_PRINTF("Serial terminal disconnected!\r\n");
             } else { // New connection!
@@ -62,19 +81,6 @@ void cli_interface_task(void *params) {
 
                 buf_idx = 0;
                 receiving_cmd = false;
-
-                // Tell the command hub to reset
-                xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
-                    .type = CMDH_RESET,
-                    .data = 0,
-                    .id = current_cmd_id++
-                }), portMAX_DELAY);
-
-                if(!xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY)) {
-                    D_PRINTF("Error requesting a reset from the command hub\r\n");
-                } else {
-                    D_PRINTF("Reset from command hub responded with %u - %u\r\n", cmdh_resp.id, cmdh_resp.type);
-                }
 
                 USB_PRINTF(SOFT_HEADER);
                 USB_PRINTF("REMOTE_CONTROL_ENABLED\r\n");

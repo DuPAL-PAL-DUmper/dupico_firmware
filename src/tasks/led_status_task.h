@@ -7,7 +7,8 @@
 #include <sys/types.h>
 
 typedef enum {
-    CMD_LSTAT_READY,
+    CMD_LSTAT_CONNECTED,
+    CMD_LSTAT_WAITING,
     CMD_LSTAT_ERROR
 } led_status_cmd_type;
 
