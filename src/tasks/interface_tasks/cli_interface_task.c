@@ -143,16 +143,16 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
             xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
             break;
         case CMD_POWER: {
-                bool relay_pwr = strutils_str_to_u8(&cmd_buffer[2]) & 0x01;
+                bool relay_pwr = cmd_buffer[2] != '0'; // Check that we get something different than a '0'
 
                 cmd_buffer[0] = RESP_START;
                 cmd_buffer[1] = CMD_POWER;
                 cmd_buffer[2] = ' ';
-                strutils_u8_to_str(&cmd_buffer[3], relay_pwr ? 1 : 0);
-                cmd_buffer[5] = RESP_END;
-                cmd_buffer[6] = '\r';
-                cmd_buffer[7] = '\n';
-                cmd_buffer[8] = 0;
+                cmd_buffer[3] = relay_pwr ? '1' : '0';
+                cmd_buffer[4] = RESP_END;
+                cmd_buffer[5] = '\r';
+                cmd_buffer[6] = '\n';
+                cmd_buffer[7] = 0;
 
                 xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
                     .type = CMDH_TOGGLE_POWER,
