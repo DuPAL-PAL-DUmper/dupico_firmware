@@ -179,6 +179,8 @@ void command_hub_task(void *params) {
             xQueueSend(lstatus_params.cmd_queue, (void*)& ((led_status_task_cmd){
                 .type = (status == READY) ? (stdio_usb_connected() ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR
             }), portMAX_DELAY);
+
+            if(status != ERROR) watchdog_update(); // Avoid starving the watchdog if we get a continuous stream of commands
         }
 
         if(status != ERROR) watchdog_update();

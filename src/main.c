@@ -62,6 +62,8 @@ static inline void stop() {
 void main_task(__unused void *params) {
     TaskHandle_t command_hub_t_handle;
 
+    D_PRINTF("Main task startup!!!\r\n\n");
+
     xTaskCreate(command_hub_task, "CommandHubTask", (configSTACK_DEPTH_TYPE)512, (void*) NULL, MAIN_TASK_PRIORITY, &command_hub_t_handle);
 
     while(true) {
