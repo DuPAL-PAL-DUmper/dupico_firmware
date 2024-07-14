@@ -17,7 +17,7 @@
 
 #define MODEL "3"
 
-#define CMD_BUFFER_SIZE 64
+#define CMD_BUFFER_SIZE 256
 #define PKT_START '>'
 #define PKT_END '<'
 #define RESP_START '['
@@ -38,6 +38,7 @@ static char cmd_buffer[CMD_BUFFER_SIZE];
 static bool cli_test_mode(command_hub_queues *queues);
 static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues);
 static void cli_request_reset(command_hub_queues *queues);
+static void cli_handle_responses(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues);
 
 static void cli_request_reset(command_hub_queues *queues) {
     command_hub_cmd_resp cmdh_resp;
@@ -110,8 +111,57 @@ void cli_interface_task(void *params) {
             }
         }
 
+        cli_handle_responses(cmd_buffer, queues);
+
         taskYIELD();
     } 
+}
+
+static void cli_handle_responses(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues) {
+    command_hub_cmd_resp cmdh_resp;
+
+    while(xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), 0)) {
+        cmd_buffer[0] = RESP_START;
+        cmd_buffer[2] = ' ';
+
+        D_PRINTF("Got a response for command type %d\r\n", cmdh_resp.cmd_type);
+
+        switch(cmdh_resp.cmd_type) {
+            case CMDH_TOGGLE_POWER:
+                cmd_buffer[1] = CMD_POWER;
+                cmd_buffer[3] = cmdh_resp.data.data ? '1' : '0';
+                cmd_buffer[4] = RESP_END;
+                cmd_buffer[5] = '\r';
+                cmd_buffer[6] = '\n';
+                cmd_buffer[7] = 0;
+
+                USB_PRINTF(cmd_buffer);
+                break;
+            case CMDH_READ_PINS:
+                cmd_buffer[1] = CMD_READ;
+                strutils_u64_to_str(&cmd_buffer[3], cmdh_resp.data.data);
+                cmd_buffer[19] = RESP_END;
+                cmd_buffer[20] = '\r';
+                cmd_buffer[21] = '\n';
+                cmd_buffer[22] = 0;
+                
+                USB_PRINTF(cmd_buffer);
+                break;
+            case CMDH_WRITE_PINS:
+                cmd_buffer[1] = CMD_WRITE;
+                strutils_u64_to_str(&cmd_buffer[3], cmdh_resp.data.data);
+                cmd_buffer[19] = RESP_END;
+                cmd_buffer[20] = '\r';
+                cmd_buffer[21] = '\n';
+                cmd_buffer[22] = 0;
+                
+                USB_PRINTF(cmd_buffer);
+                break;
+            case CMDH_RESET: // Nothing to do
+            default:
+                break;
+        }
+    }
 }
 
 static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues) {
@@ -122,6 +172,7 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
             USB_PRINTF(RESP_MODEL);
             break;
         case CMD_TEST:
+            // In this case we handle the response directly in this function
             cmd_buffer[0] = RESP_START;
             cmd_buffer[1] = CMD_TEST;
             cmd_buffer[2] = ' ';
@@ -140,28 +191,15 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
                 .data = 0,
                 .id = 0
             }), portMAX_DELAY);
-            xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
             break;
         case CMD_POWER: {
                 bool relay_pwr = cmd_buffer[2] != '0'; // Check that we get something different than a '0'
-
-                cmd_buffer[0] = RESP_START;
-                cmd_buffer[1] = CMD_POWER;
-                cmd_buffer[2] = ' ';
-                cmd_buffer[3] = relay_pwr ? '1' : '0';
-                cmd_buffer[4] = RESP_END;
-                cmd_buffer[5] = '\r';
-                cmd_buffer[6] = '\n';
-                cmd_buffer[7] = 0;
 
                 xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
                     .type = CMDH_TOGGLE_POWER,
                     .data = relay_pwr,
                     .id = 0
                 }), portMAX_DELAY);
-                xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
-
-                USB_PRINTF(cmd_buffer);
             }
             break;
         case CMD_READ: {
@@ -170,18 +208,6 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
                     .data = 0,
                     .id = 0
                 }), portMAX_DELAY);
-                xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
-
-                cmd_buffer[0] = RESP_START;
-                cmd_buffer[1] = CMD_READ;
-                cmd_buffer[2] = ' ';
-                strutils_u64_to_str(&cmd_buffer[3], cmdh_resp.data.data);
-                cmd_buffer[19] = RESP_END;
-                cmd_buffer[20] = '\r';
-                cmd_buffer[21] = '\n';
-                cmd_buffer[22] = 0;
-                
-                USB_PRINTF(cmd_buffer);
             }
             break;
         case CMD_WRITE: {
@@ -190,18 +216,6 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
                     .data = strutils_str_to_u64(&cmd_buffer[2]),
                     .id = 0
                 }), portMAX_DELAY);
-                xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
-
-                cmd_buffer[0] = RESP_START;
-                cmd_buffer[1] = CMD_WRITE;
-                cmd_buffer[2] = ' ';
-                strutils_u64_to_str(&cmd_buffer[3], cmdh_resp.data.data);
-                cmd_buffer[19] = RESP_END;
-                cmd_buffer[20] = '\r';
-                cmd_buffer[21] = '\n';
-                cmd_buffer[22] = 0;
-                
-                USB_PRINTF(cmd_buffer);
             }   
             break;
         default:
