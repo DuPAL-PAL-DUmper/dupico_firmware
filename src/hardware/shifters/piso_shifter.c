@@ -8,8 +8,6 @@
 
 #include "utils/custom_debug.h"
 
-#define DEFAULT_DELAY 1
-
 void piso_shifter_init(const PISO_Config* cfg) {
     // Init the pins
     gpio_init_mask( _BV(cfg->ser_pin) |
@@ -51,18 +49,18 @@ uint64_t piso_shifter_get(const PISO_Config* cfg) {
 
     // Enable clock and inputs, then set clock to low
     gpio_put_masked(_BV(cfg->ce_pin) | _BV(cfg->pe_pin) | _BV(cfg->clk_pin), 0);
-    vTaskDelay(DEFAULT_DELAY);
+    taskYIELD();
 
     // Set the clock to high
     gpio_put(cfg->clk_pin, true);
-    vTaskDelay(DEFAULT_DELAY);
+    taskYIELD();
     // Disable the inputs
     gpio_put(cfg->pe_pin, true);
 
     for (uint idx = 0; idx < cfg->len; idx++) {
-        vTaskDelay(DEFAULT_DELAY);
+        taskYIELD();
         gpio_put(cfg->clk_pin, true); // Clock out the data
-        vTaskDelay(DEFAULT_DELAY);
+        taskYIELD();
 
         data |= gpio_get(cfg->ser_pin) ? (((uint64_t)1) << idx) : 0;
         
