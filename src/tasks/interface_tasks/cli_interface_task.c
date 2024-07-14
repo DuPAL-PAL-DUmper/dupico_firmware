@@ -17,6 +17,8 @@
 
 #define MODEL "3"
 
+#define DATA_PARAMETER_SIZE (1 + 16) // a whitespace plus hex representation of a 64bit number
+
 #define CMD_BUFFER_SIZE 256
 #define PKT_START '>'
 #define PKT_END '<'
@@ -228,7 +230,7 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
                 for(uint8_t idx = 0; idx < 8; idx++) {
                     xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
                         .type = CMDH_WRITE_PINS,
-                        .data = strutils_str_to_u64(&cmd_buffer[2 + 17 * idx]),
+                        .data = strutils_str_to_u64(&cmd_buffer[2 + DATA_PARAMETER_SIZE * idx]),
                         .id = 0
                     }), portMAX_DELAY);                    
                 }
