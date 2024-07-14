@@ -125,8 +125,8 @@ void command_hub_task(void *params) {
     // Queues to send the updates to the CLI task
     // Queues to handle reception of commands and responses from CLI task
     command_hub_queues cli_queues = {
-        .cmd_queue = xQueueCreate(16, sizeof(command_hub_cmd)),
-        .resp_queue = xQueueCreate(17, sizeof(command_hub_cmd_resp)) // We can hold more responses than commands, should avoid blocking as we have just one producer/consumer
+        .cmd_queue = xQueueCreate(10, sizeof(command_hub_cmd)),
+        .resp_queue = xQueueCreate(11, sizeof(command_hub_cmd_resp)) // We can hold more responses than commands, should avoid blocking as we have just one producer/consumer
     };
 
     shifter_io_task_params shifter_params = {

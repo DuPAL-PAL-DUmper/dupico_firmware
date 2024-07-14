@@ -17,13 +17,14 @@
 
 #define MODEL "3"
 
-#define CMD_BUFFER_SIZE 64
+#define CMD_BUFFER_SIZE 256
 #define PKT_START '>'
 #define PKT_END '<'
 #define RESP_START '['
 #define RESP_END ']'
 
 #define CMD_WRITE 'W'
+#define CMD_EXT_WRITE 'E'
 #define CMD_READ 'R'
 #define CMD_RESET 'K'
 #define CMD_POWER 'P'
@@ -222,6 +223,16 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
                     .id = 0
                 }), portMAX_DELAY);
             }   
+            break;
+        case CMD_EXT_WRITE: {
+                for(uint8_t idx = 0; idx < 8; idx++) {
+                    xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
+                        .type = CMDH_WRITE_PINS,
+                        .data = strutils_str_to_u64(&cmd_buffer[2 + 17 * idx]),
+                        .id = 0
+                    }), portMAX_DELAY);                    
+                }
+            }
             break;
         default:
             USB_PRINTF(RESP_ERROR);
