@@ -66,6 +66,8 @@ void cli_interface_task(void *params) {
     bool cur_term_connected = false;
     int ch;
 
+    UBaseType_t cmd_queue_len = uxQueueGetQueueLength(queues->cmd_queue);
+
     while(true) {
         cur_term_connected = stdio_usb_connected();
 
@@ -88,26 +90,29 @@ void cli_interface_task(void *params) {
             }
         }
 
-        if(term_connected_state && ((ch = getchar_timeout_us(0)) >= 0)) {
-            switch(ch) {
-                case PKT_START:
-                    memset(cmd_buffer, 0, CMD_BUFFER_SIZE);
-                    buf_idx = 0;
-                    receiving_cmd = true;
-                    break;
-                case PKT_END:
-                    if(receiving_cmd && buf_idx) {
-                        // Parse and react to command
-                        cli_parse_command(cmd_buffer, queues);
-                    }
-                    receiving_cmd = false;
-                    buf_idx = 0;
-                    break;
-                default:
-                    if(receiving_cmd && (buf_idx < (CMD_BUFFER_SIZE - 1))) { // Leave one empty space for a null
-                        cmd_buffer[buf_idx++] = ch & 0xFF;
-                    }
-                    break;
+        if(term_connected_state) {
+            // If we have characters and space in the destination command queue, keep parsing...
+            while(((ch = getchar_timeout_us(0)) >= 0) && (cmd_queue_len > uxQueueMessagesWaiting(queues->cmd_queue))) {
+                switch(ch) {
+                    case PKT_START:
+                        memset(cmd_buffer, 0, CMD_BUFFER_SIZE);
+                        buf_idx = 0;
+                        receiving_cmd = true;
+                        break;
+                    case PKT_END:
+                        if(receiving_cmd && buf_idx) {
+                            // Parse and react to command
+                            cli_parse_command(cmd_buffer, queues);
+                        }
+                        receiving_cmd = false;
+                        buf_idx = 0;
+                        break;
+                    default:
+                        if(receiving_cmd && (buf_idx < (CMD_BUFFER_SIZE - 1))) { // Leave one empty space for a null
+                            cmd_buffer[buf_idx++] = ch & 0xFF;
+                        }
+                        break;
+                }
             }
         }
 
