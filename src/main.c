@@ -10,9 +10,9 @@
 #include <sys/sys.h>
 
 #include <tasks/command_hub_task.h>
-#include <utils/custom_debug.h>
 
-#define MAIN_TASK_PRIORITY				( tskIDLE_PRIORITY + 1UL )
+#include <common_macros.h>
+#include <utils/custom_debug.h>
 
 const uint8_t led_pin = LED_GPIO;
 
@@ -64,7 +64,7 @@ void main_task(__unused void *params) {
 
     D_PRINTF("Main task startup!!!\r\n\n");
 
-    xTaskCreate(command_hub_task, "CommandHubTask", (configSTACK_DEPTH_TYPE)512, (void*) NULL, MAIN_TASK_PRIORITY, &command_hub_t_handle);
+    xTaskCreate(command_hub_task, "CommandHubTask", (configSTACK_DEPTH_TYPE)512, (void*) NULL, BASELINE_TASK_PRIORITY + 2, &command_hub_t_handle);
 
     while(true) {
         // Now loop indefinitely printing debug data
@@ -76,7 +76,7 @@ void main_task(__unused void *params) {
 
 void vLaunch(void) {
     TaskHandle_t main_t_handle;
-    xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, MAIN_TASK_PRIORITY, &main_t_handle);
+    xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, BASELINE_TASK_PRIORITY, &main_t_handle);
 
 #if NO_SYS && configUSE_CORE_AFFINITY && configNUMBER_OF_CORES > 1
     // we must bind the main task to one core (well at least while the init is called)
