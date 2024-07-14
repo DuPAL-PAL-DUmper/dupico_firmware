@@ -17,7 +17,7 @@
 
 #define MODEL "3"
 
-#define CMD_BUFFER_SIZE 256
+#define CMD_BUFFER_SIZE 64
 #define PKT_START '>'
 #define PKT_END '<'
 #define RESP_START '['
