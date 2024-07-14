@@ -124,8 +124,8 @@ void command_hub_task(void *params) {
     // Queues to send the updates to the CLI task
     // Queues to handle reception of commands and responses from CLI task
     command_hub_queues cli_queues = {
-        .cmd_queue = xQueueCreate(1, sizeof(command_hub_cmd)),
-        .resp_queue = xQueueCreate(1, sizeof(command_hub_cmd_resp))
+        .cmd_queue = xQueueCreate(2, sizeof(command_hub_cmd)),
+        .resp_queue = xQueueCreate(2, sizeof(command_hub_cmd_resp))
     };
 
     shifter_io_task_params shifter_params = {
@@ -145,8 +145,8 @@ void command_hub_task(void *params) {
             .srclr_pin = SIPO_CLR_GPIO,
             .len = 40
         },
-        .cmd_queue = xQueueCreate(1, sizeof(shifter_io_task_cmd)),
-        .resp_queue = xQueueCreate(1, sizeof(uint64_t))
+        .cmd_queue = xQueueCreate(2, sizeof(shifter_io_task_cmd)),
+        .resp_queue = xQueueCreate(2, sizeof(uint64_t))
     };
 
     led_status_task_params lstatus_params = {
@@ -159,14 +159,11 @@ void command_hub_task(void *params) {
 
     // Create and start the task to handle CLI interface
     xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE * 2, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
-    //vTaskCoreAffinitySet(cli_interface_t_handle, (1 << 1));
 
     // Create and start the task to handle the status led
     xTaskCreate(led_status_task, "LEDStatusTask", configMINIMAL_STACK_SIZE, (void*)&lstatus_params, BASELINE_TASK_PRIORITY, &lstatus_t_handle);
 
     command_hub_status status = reset_task(&shifter_params, &lstatus_params) ? READY : ERROR;
-
-    // TODO: handle turning on and off the relay. Keep this in some state? Or check the GPIO?
 
     while(true) {
         // Receive commands from the CLI
