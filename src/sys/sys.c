@@ -5,6 +5,8 @@
 #include "pico/stdio_usb.h"
 #include "pico/stdio_uart.h"
 
+#include "custom_debug.h"
+
 #define WATCHDOG_TIMEOUT 3000 // 3 seconds
 
 static void sys_RELAY_init(void);
@@ -28,4 +30,6 @@ void sys_init(void) {
     // Initialize chosen serial port
     stdio_init_all();
     stdio_filter_driver(&stdio_usb); // Filter inputs for USB only
+
+    init_print();
 }
