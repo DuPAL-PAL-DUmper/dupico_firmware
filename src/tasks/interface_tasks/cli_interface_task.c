@@ -54,7 +54,7 @@ static void cli_request_reset(command_hub_queues *queues) {
     }), portMAX_DELAY);
 
     if(!xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY)) {
-        DD_PRINTF("Error requesting a reset from the command hub\r\n");
+        D_PRINTF("Error requesting a reset from the command hub\r\n");
     } else {
         DD_PRINTF("Reset from command hub responded with %u - %u\r\n", cmdh_resp.id, cmdh_resp.type);
     }    
@@ -81,9 +81,9 @@ void cli_interface_task(void *params) {
             cli_request_reset(queues);
 
             if(!term_connected_state) { // We got a disconnection from the device
-                DD_PRINTF("Serial terminal disconnected!\r\n");
+                D_PRINTF("Serial terminal disconnected!\r\n");
             } else { // New connection!
-                DD_PRINTF("Serial terminal connected!\r\n");
+                D_PRINTF("Serial terminal connected!\r\n");
 
                 buf_idx = 0;
                 receiving_cmd = false;
@@ -269,7 +269,7 @@ static bool cli_test_mode(command_hub_queues *queues) {
         xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
 
         if(cmdh_resp.data.data != test_patterns[idx]) {
-            DD_PRINTF("Failed pattern %llx, got %llx!\r\n", test_patterns[idx], cmdh_resp.data.data);
+            D_PRINTF("Failed pattern %llx, got %llx!\r\n", test_patterns[idx], cmdh_resp.data.data);
 
             test_result = false;
             break;
