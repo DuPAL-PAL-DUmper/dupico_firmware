@@ -64,7 +64,7 @@ void main_task(__unused void *params) {
 
     D_PRINTF("Main task startup!!!\r\n\n");
 
-    xTaskCreate(command_hub_task, "CommandHubTask", configMINIMAL_STACK_SIZE * 3, (void*) NULL, BASELINE_TASK_PRIORITY + 2, &command_hub_t_handle);
+    xTaskCreate(command_hub_task, "CommandHubTask", configMINIMAL_STACK_SIZE * 2, (void*) NULL, BASELINE_TASK_PRIORITY + 3, &command_hub_t_handle);
 
     while(true) {
 #if DEBUG == 1
