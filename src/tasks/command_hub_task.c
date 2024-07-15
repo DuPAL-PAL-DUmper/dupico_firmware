@@ -49,7 +49,6 @@ static void toggle_relay(bool state) {
     gpio_put(RELAY_ENABLE_GPIO, !state);
 }
 
-
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, const shifter_io_task_params* shifter_params, const led_status_task_params* lstatus_params, command_hub_status *hub_status) {
     uint64_t shft_data;
 
@@ -188,10 +187,11 @@ void command_hub_task(void *params) {
             }
             
             taskYIELD();         
+            watchdog_update();
         }
 
-        watchdog_update();
         taskYIELD();
+        watchdog_update();
     }
 
     D_PRINTF("WARNING: Out of command hub loop, state %d\r\n", status);
