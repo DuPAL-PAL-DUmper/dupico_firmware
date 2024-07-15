@@ -32,4 +32,8 @@ void sys_init(void) {
     stdio_filter_driver(&stdio_usb); // Filter inputs for USB only
 
     init_print();
+
+    if(watchdog_caused_reboot()) {
+        D_PRINTF("Previous reboot was caused by watchdog!!!\r\n");
+    }
 }
