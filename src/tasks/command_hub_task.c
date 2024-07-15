@@ -171,9 +171,9 @@ void command_hub_task(void *params) {
     led_status_cmd_type last_led_status = CMD_LSTAT_WAITING;
     led_status_cmd_type cur_led_status = CMD_LSTAT_WAITING;
 
-    while(true) {
+    while(status != ERROR) {
         // Receive commands from the CLI
-        while(xQueueReceive(cli_queues.cmd_queue, (void*)&(cmd), 0)) {
+        while(xQueueReceive(cli_queues.cmd_queue, (void*)&(cmd), 0) && status != ERROR) {
             handle_inbound_commands(&cmd, cli_queues.resp_queue, &shifter_params, &lstatus_params, &status);
 
             // Update the status led every time we have handled a command,
@@ -186,18 +186,14 @@ void command_hub_task(void *params) {
                     .type = (status == READY) ? (stdio_usb_connected() ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR
                 }), portMAX_DELAY);
             }
-
-            if(status != ERROR) watchdog_update(); // Avoid starving the watchdog if we get a continuous stream of commands
-            else break;
+            
+            taskYIELD();         
         }
 
-        if(status != ERROR) watchdog_update();
-        else break;
-
+        watchdog_update();
         taskYIELD();
     }
 
     D_PRINTF("WARNING: Out of command hub loop, state %d\r\n", status);
-    // This will cause a reboot for watchdog
-    while(true);
+    vTaskDelete(NULL);
 }
