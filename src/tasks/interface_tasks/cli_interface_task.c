@@ -26,7 +26,7 @@
 #define RESP_END ']'
 
 #define CMD_WRITE 'W'
-#define CMD_EXT_WRITE 'E'
+#define CMD_EXT_WRITE 'E' // This supports sending 8 writes at once
 #define CMD_READ 'R'
 #define CMD_RESET 'K'
 #define CMD_POWER 'P'
