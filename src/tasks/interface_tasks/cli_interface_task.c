@@ -95,7 +95,7 @@ void cli_interface_task(void *params) {
 
         if(term_connected_state) {
             // If we have characters and space in the destination command queue, keep parsing...
-            while(((ch = getchar_timeout_us(0)) >= 0) && (cmd_queue_len > uxQueueMessagesWaiting(queues->cmd_queue))) {
+            while((cmd_queue_len > uxQueueMessagesWaiting(queues->cmd_queue)) && ((ch = getchar_timeout_us(0)) >= 0)) {
                 switch(ch) {
                     case PKT_START:
                         memset(cmd_buffer, 0, CMD_BUFFER_SIZE);
@@ -116,6 +116,8 @@ void cli_interface_task(void *params) {
                         }
                         break;
                 }
+
+                taskYIELD();
             }
         }
 

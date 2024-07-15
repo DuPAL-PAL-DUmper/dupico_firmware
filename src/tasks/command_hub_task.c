@@ -160,6 +160,9 @@ void command_hub_task(void *params) {
 
     // Create and start the task to handle CLI interface
     xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE * 2, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
+    // See https://github.com/raspberrypi/pico-sdk/issues/1453
+    // Force this task on core 0...
+    vTaskCoreAffinitySet(cli_interface_t_handle, 0x01);
 
     // Create and start the task to handle the status led
     xTaskCreate(led_status_task, "LEDStatusTask", configMINIMAL_STACK_SIZE, (void*)&lstatus_params, BASELINE_TASK_PRIORITY, &lstatus_t_handle);
@@ -169,6 +172,7 @@ void command_hub_task(void *params) {
     // Variables used to check if we need to update the led status or not
     led_status_cmd_type last_led_status = CMD_LSTAT_WAITING;
     led_status_cmd_type cur_led_status = CMD_LSTAT_WAITING;
+    bool serial_connected = false;
 
     while(status != ERROR) {
         // Receive commands from the CLI
@@ -178,16 +182,17 @@ void command_hub_task(void *params) {
             // Update the status led every time we have handled a command,
             // If we're in a ready state and connected to a terminal, then we request a "CONNECTED" state to be shown,
             // if we're ready but not connected, we'll request a "WAITING". Otherwise it's an "ERROR".
-            cur_led_status = (status == READY) ? (stdio_usb_connected() ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR;
+
+            serial_connected = stdio_usb_connected();
+            cur_led_status = (status == READY) ? (serial_connected ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR;
             if (cur_led_status != last_led_status) { // Yep, we need an update!
                 last_led_status = cur_led_status;
                 xQueueSend(lstatus_params.cmd_queue, (void*)& ((led_status_task_cmd){
-                    .type = (status == READY) ? (stdio_usb_connected() ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR
+                    .type = (status == READY) ? (serial_connected ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR
                 }), portMAX_DELAY);
             }
             
             taskYIELD();         
-            watchdog_update();
         }
 
         taskYIELD();
