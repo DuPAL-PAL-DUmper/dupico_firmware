@@ -54,9 +54,9 @@ static void cli_request_reset(command_hub_queues *queues) {
     }), portMAX_DELAY);
 
     if(!xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY)) {
-        D_PRINTF("Error requesting a reset from the command hub\r\n");
+        DD_PRINTF("Error requesting a reset from the command hub\r\n");
     } else {
-        D_PRINTF("Reset from command hub responded with %u - %u\r\n", cmdh_resp.id, cmdh_resp.type);
+        DD_PRINTF("Reset from command hub responded with %u - %u\r\n", cmdh_resp.id, cmdh_resp.type);
     }    
 }
 
@@ -81,9 +81,9 @@ void cli_interface_task(void *params) {
             cli_request_reset(queues);
 
             if(!term_connected_state) { // We got a disconnection from the device
-                D_PRINTF("Serial terminal disconnected!\r\n");
+                DD_PRINTF("Serial terminal disconnected!\r\n");
             } else { // New connection!
-                D_PRINTF("Serial terminal connected!\r\n");
+                DD_PRINTF("Serial terminal connected!\r\n");
 
                 buf_idx = 0;
                 receiving_cmd = false;
@@ -132,7 +132,7 @@ static void cli_handle_responses(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_q
         cmd_buffer[0] = RESP_START;
         cmd_buffer[2] = ' ';
 
-        D_PRINTF("Got a response for command type %d\r\n", cmdh_resp.cmd_type);
+        DD_PRINTF("Got a response for command type %d\r\n", cmdh_resp.cmd_type);
 
         switch(cmdh_resp.cmd_type) {
             case CMDH_TOGGLE_POWER:
@@ -193,7 +193,7 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
             USB_PRINTF(cmd_buffer);
             break;
         case CMD_RESET:
-            D_PRINTF("Forcing an error state in the command hub...\r\n");
+            DD_PRINTF("Forcing an error state in the command hub...\r\n");
             xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
                 .type = CMDH_FORCE_ERROR,
                 .data = 0,
@@ -248,10 +248,10 @@ static bool cli_test_mode(command_hub_queues *queues) {
     uint8_t tot_patterns = sizeof(test_patterns) / sizeof(test_patterns[0]);
     bool test_result = true;
 
-    D_PRINTF("Executing test mode...\r\n");
+    DD_PRINTF("Executing test mode...\r\n");
 
     // Enable the relay
-    D_PRINTF("Enabling the relay.\r\n");
+    DD_PRINTF("Enabling the relay.\r\n");
     xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
         .type = CMDH_TOGGLE_POWER,
         .data = 1,
@@ -260,7 +260,7 @@ static bool cli_test_mode(command_hub_queues *queues) {
     xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
 
     for(uint8_t idx = 0; idx < tot_patterns; idx++) {
-        D_PRINTF("Testing %.16X.\r\n", test_patterns[idx]);
+        DD_PRINTF("Testing %.16X.\r\n", test_patterns[idx]);
         xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
             .type = CMDH_WRITE_PINS,
             .data = test_patterns[idx],
@@ -269,7 +269,7 @@ static bool cli_test_mode(command_hub_queues *queues) {
         xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
 
         if(cmdh_resp.data.data != test_patterns[idx]) {
-            D_PRINTF("Failed pattern %llx, got %llx!\r\n", test_patterns[idx], cmdh_resp.data.data);
+            DD_PRINTF("Failed pattern %llx, got %llx!\r\n", test_patterns[idx], cmdh_resp.data.data);
 
             test_result = false;
             break;
@@ -277,7 +277,7 @@ static bool cli_test_mode(command_hub_queues *queues) {
     }
 
     // Disable the relay
-    D_PRINTF("Disabling the relay.\r\n");
+    DD_PRINTF("Disabling the relay.\r\n");
     xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
         .type = CMDH_TOGGLE_POWER,
         .data = 0,

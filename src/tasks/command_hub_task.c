@@ -64,7 +64,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
             handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_OK, 0); // Command recognized, even if it is intended to create an artificial error
             break;
         case CMDH_READ_PINS:
-            D_PRINTF("Got a READ request\r\n");
+            DD_PRINTF("Got a READ request\r\n");
 
             xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
                 .cmd = SHF_READ,
@@ -80,7 +80,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
 
             break;
         case CMDH_WRITE_PINS:
-            D_PRINTF("Got a WRITE request %llx\r\n", cmd->data);
+            DD_PRINTF("Got a WRITE request %llx\r\n", cmd->data);
 
             xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
                 .cmd = SHF_WRITE,
@@ -96,7 +96,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
 
             break;
         case CMDH_TOGGLE_POWER:
-            D_PRINTF("Got a relay toggle command %u\r\n", cmd->data);
+            DD_PRINTF("Got a relay toggle command %u\r\n", cmd->data);
             toggle_relay(cmd->data > 0);
             handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_OK, cmd->data > 0 ? 1 : 0);
             break;

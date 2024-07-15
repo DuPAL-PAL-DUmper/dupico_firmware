@@ -17,6 +17,14 @@ int __attribute__((weak)) dbg_printf(const char *func, int line, const char *fmt
 #  endif
 #endif
 
+#ifndef DD_PRINTF
+#  if DEBUG == 1
+#    define DD_PRINTF(fmt, ...) D_PRINTF(fmt, ##__VA_ARGS__)
+#  else
+#    define DD_PRINTF(fmt, ...) (void)0
+#  endif
+#endif
+
 #ifndef USB_PRINTF
 #  define USB_PRINTF(fmt, ...) retarg_printf(&stdio_usb, fmt, ##__VA_ARGS__)
 #endif
