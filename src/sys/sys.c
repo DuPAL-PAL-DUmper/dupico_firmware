@@ -7,7 +7,7 @@
 
 #include "custom_debug.h"
 
-#define WATCHDOG_TIMEOUT 3000 // 3 seconds
+#define WATCHDOG_TIMEOUT 5000 // 5 seconds
 
 static void sys_RELAY_init(void);
 static void sys_WD_init(void);

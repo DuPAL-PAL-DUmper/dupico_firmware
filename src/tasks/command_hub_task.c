@@ -75,6 +75,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
                 handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_OK, shft_data);
             } else {
                 handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_ERROR, 0);
+                D_PRINTF("Error handling a READ request!\r\n");
                 *hub_status = ERROR;
             }
 
@@ -91,9 +92,9 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
                 handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_OK, shft_data);
             } else {
                 handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_ERROR, 0);
+                D_PRINTF("Error handling a WRITE request!\r\n");
                 *hub_status = ERROR;
             }
-
             break;
         case CMDH_TOGGLE_POWER:
             DD_PRINTF("Got a relay toggle command %u\r\n", cmd->data);
@@ -187,10 +188,16 @@ void command_hub_task(void *params) {
             }
 
             if(status != ERROR) watchdog_update(); // Avoid starving the watchdog if we get a continuous stream of commands
+            else break;
         }
 
         if(status != ERROR) watchdog_update();
+        else break;
 
         taskYIELD();
     }
+
+    D_PRINTF("WARNING: Out of command hub loop, state %d\r\n", status);
+    // This will cause a reboot for watchdog
+    while(true);
 }
