@@ -64,12 +64,14 @@ void main_task(__unused void *params) {
 
     D_PRINTF("Main task startup!!!\r\n\n");
 
-    xTaskCreate(command_hub_task, "CommandHubTask", (configSTACK_DEPTH_TYPE)512, (void*) NULL, BASELINE_TASK_PRIORITY + 2, &command_hub_t_handle);
+    xTaskCreate(command_hub_task, "CommandHubTask", configMINIMAL_STACK_SIZE * 3, (void*) NULL, BASELINE_TASK_PRIORITY + 2, &command_hub_t_handle);
 
     while(true) {
+#if DEBUG == 1
         // Now loop indefinitely printing debug data
         D_PRINTF("Main task loop\r\n");
         statusDebug();
+#endif
         vTaskDelay(10000);
     }
 }
@@ -109,7 +111,7 @@ void vApplicationPassiveIdleHook(void) {
 void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName )
 {
     while (true) {
-        printf("!!! STACK OVERFLOW on %s\n\n", pcTaskName);
+        D_PRINTF("!!! STACK OVERFLOW on %s\n\n", pcTaskName);
     }
 }
 
