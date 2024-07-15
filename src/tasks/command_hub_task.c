@@ -125,8 +125,8 @@ void command_hub_task(void *params) {
     // Queues to send the updates to the CLI task
     // Queues to handle reception of commands and responses from CLI task
     command_hub_queues cli_queues = {
-        .cmd_queue = xQueueCreate(10, sizeof(command_hub_cmd)),
-        .resp_queue = xQueueCreate(11, sizeof(command_hub_cmd_resp)) // We can hold more responses than commands, should avoid blocking as we have just one producer/consumer
+        .cmd_queue = xQueueCreate(9, sizeof(command_hub_cmd)),
+        .resp_queue = xQueueCreate(10, sizeof(command_hub_cmd_resp)) // We can hold more responses than commands, should avoid blocking as we have just one producer/consumer
     };
 
     shifter_io_task_params shifter_params = {
@@ -146,8 +146,8 @@ void command_hub_task(void *params) {
             .srclr_pin = SIPO_CLR_GPIO,
             .len = 40
         },
-        .cmd_queue = xQueueCreate(2, sizeof(shifter_io_task_cmd)),
-        .resp_queue = xQueueCreate(2, sizeof(uint64_t))
+        .cmd_queue = xQueueCreate(9, sizeof(shifter_io_task_cmd)),
+        .resp_queue = xQueueCreate(10, sizeof(uint64_t))
     };
 
     led_status_task_params lstatus_params = {
@@ -166,6 +166,10 @@ void command_hub_task(void *params) {
 
     command_hub_status status = reset_task(&shifter_params, &lstatus_params) ? READY : ERROR;
 
+    // Variables used to check if we need to update the led status or not
+    led_status_cmd_type last_led_status = CMD_LSTAT_WAITING;
+    led_status_cmd_type cur_led_status = CMD_LSTAT_WAITING;
+
     while(true) {
         // Receive commands from the CLI
         while(xQueueReceive(cli_queues.cmd_queue, (void*)&(cmd), 0)) {
@@ -174,9 +178,13 @@ void command_hub_task(void *params) {
             // Update the status led every time we have handled a command,
             // If we're in a ready state and connected to a terminal, then we request a "CONNECTED" state to be shown,
             // if we're ready but not connected, we'll request a "WAITING". Otherwise it's an "ERROR".
-            xQueueSend(lstatus_params.cmd_queue, (void*)& ((led_status_task_cmd){
-                .type = (status == READY) ? (stdio_usb_connected() ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR
-            }), portMAX_DELAY);
+            cur_led_status = (status == READY) ? (stdio_usb_connected() ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR;
+            if (cur_led_status != last_led_status) { // Yep, we need an update!
+                last_led_status = cur_led_status;
+                xQueueSend(lstatus_params.cmd_queue, (void*)& ((led_status_task_cmd){
+                    .type = (status == READY) ? (stdio_usb_connected() ? CMD_LSTAT_CONNECTED : CMD_LSTAT_WAITING) : CMD_LSTAT_ERROR
+                }), portMAX_DELAY);
+            }
 
             if(status != ERROR) watchdog_update(); // Avoid starving the watchdog if we get a continuous stream of commands
         }
