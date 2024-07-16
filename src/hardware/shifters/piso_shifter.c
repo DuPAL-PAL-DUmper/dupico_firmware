@@ -62,7 +62,7 @@ uint64_t piso_shifter_get(const PISO_Config* cfg) {
         gpio_put(cfg->clk_pin, true); // Clock out the data
         taskYIELD();
 
-        data |= gpio_get(cfg->ser_pin) ? (((uint64_t)1) << idx) : 0;
+        data |= gpio_get(cfg->ser_pin) ? (((uint64_t)1) << (cfg->len - (idx + 1))) : 0;
         
         gpio_put(cfg->clk_pin, false); 
     }

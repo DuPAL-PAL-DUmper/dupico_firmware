@@ -39,7 +39,7 @@ void sipo_shifter_init(const SIPO_Config* cfg) {
 
 void sipo_shifter_set(const SIPO_Config* cfg, uint64_t val) {
     for(uint idx = 0; idx < cfg->len; idx++) {
-        if((val >> idx) & 0x01) gpio_put(cfg->ser_pin, true); // High
+        if((val >> (cfg->len - (idx + 1))) & 0x01) gpio_put(cfg->ser_pin, true); // High
         else gpio_put(cfg->ser_pin, false); // Low
 
         toggle_SRCLK(cfg);
