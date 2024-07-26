@@ -62,7 +62,8 @@ static inline void stop() {
 void main_task(__unused void *params) {
     TaskHandle_t command_hub_t_handle;
 
-    D_PRINTF("Main task startup!!!\r\n\n");
+    D_PRINTF("Dupico FW " FW_VERSION "\r\n");
+    D_PRINTF("Main task starting...\r\n\n");
 
     xTaskCreate(command_hub_task, "CommandHubTask", configMINIMAL_STACK_SIZE * 2, (void*) NULL, BASELINE_TASK_PRIORITY, &command_hub_t_handle);
 

@@ -12,8 +12,7 @@
 #include "utils/custom_debug.h"
 #include "utils/strutils.h"
 
-#define VERSION "0.0.2"
-#define SOFT_HEADER "\nDuPICO - " VERSION "\n\n\r"
+#define SOFT_HEADER "\nDuPICO - " FW_VERSION "\n\n\r"
 
 #define MODEL "3"
 
