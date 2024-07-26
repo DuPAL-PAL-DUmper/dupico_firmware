@@ -6,6 +6,18 @@ The DuPAL (**Du**mper of **PAL**s) is a set of software and hardware instruments
 
 **Note:** The current version of this firmware is compatible with DuPAL V3 "dupico" boards __only__.
 
+## Sponsorship
+
+![PCBWay_logo](pics/pcbway_logo.png)
+
+This project is kindly sponsored by [PCBWay](https://pcbway.com).
+PCBWay specializes in manufacturing high-quality PCBs and makes them affordable to hobbyist and professionals alike.
+
+The range of services they offer include PCB prototyping, assembly, instant quotes for your order, a verification process by a team
+of experts and an easy to use, hassle-free order process.
+
+I'm grateful to PCBWay for the support in creating this project.
+
 ### Building
 
 Building requires an ARM toolchain, cmake and both [FreeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel.git) and the [Pico SDK](https://github.com/raspberrypi/pico-sdk.git) checked out, with their locations set respectively in the environment variables `FREERTOS_KERNEL_PATH` and `PICO_SDK_PATH`.
