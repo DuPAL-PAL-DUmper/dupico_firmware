@@ -236,7 +236,24 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
             }   
             break;
         case CMD_EXT_WRITE: {
-                for(uint8_t idx = 0; idx < 8; idx++) {
+                size_t cmd_len = strnlen(cmd_buffer, CMD_BUFFER_SIZE - 1);
+                size_t num_entries = (cmd_len - 1)/DATA_PARAMETER_SIZE;
+
+                // Check that the number of parameters is perfectly divisible
+                if((cmd_len - 1) % DATA_PARAMETER_SIZE) {
+                    D_PRINTF("Got an extended write of length %u\r\n", cmd_len);
+                    USB_PRINTF(RESP_ERROR); 
+                    break;
+                }
+
+                // Check that we can fit the commands inside the queues without blocking
+                if(num_entries > CMD_QUEUE_SIZE) {
+                    D_PRINTF("Got an extended write with %u entries, max supported %u\r\n", num_entries, CMD_QUEUE_SIZE);
+                    USB_PRINTF(RESP_ERROR); 
+                    break;                    
+                }
+
+                for(size_t idx = 0; idx < num_entries; idx++) {
                     xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
                         .type = CMDH_WRITE_PINS,
                         .data = strutils_str_to_u64(&cmd_buffer[2 + DATA_PARAMETER_SIZE * idx]),

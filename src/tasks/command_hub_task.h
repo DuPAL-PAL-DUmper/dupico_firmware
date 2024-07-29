@@ -38,6 +38,8 @@ typedef struct {
     QueueHandle_t resp_queue;
 } command_hub_queues;
 
+#define CMD_QUEUE_SIZE 14
+
 void command_hub_task(void *params);
 
 #endif /* _COMMAND_HUB_TASK_ */
