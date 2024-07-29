@@ -12,8 +12,6 @@
 #include "utils/custom_debug.h"
 #include "utils/strutils.h"
 
-#define SOFT_HEADER "\nDuPICO - " FW_VERSION "\n\n\r"
-
 #define MODEL "3"
 
 #define DATA_PARAMETER_SIZE (1 + 16) // a whitespace plus hex representation of a 64bit number
@@ -31,6 +29,7 @@
 #define CMD_POWER 'P'
 #define CMD_MODEL 'M'
 #define CMD_TEST 'T'
+#define CMD_VERSION 'V'
 
 #define RESP_ERROR "CMD_ERR\n\r"
 #define RESP_MODEL "[M " MODEL "]\n\r"
@@ -87,7 +86,6 @@ void cli_interface_task(void *params) {
                 buf_idx = 0;
                 receiving_cmd = false;
 
-                USB_PRINTF(SOFT_HEADER);
                 USB_PRINTF("REMOTE_CONTROL_ENABLED\r\n");
             }
         }
@@ -192,6 +190,16 @@ static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queu
             cmd_buffer[7] = 0;
 
             USB_PRINTF(cmd_buffer);
+            break;
+        case CMD_VERSION:
+            // We handle the response directly here
+            strncpy(cmd_buffer, "   " FW_VERSION " \r\n", CMD_BUFFER_SIZE - 1);
+            size_t len = strnlen(cmd_buffer, CMD_BUFFER_SIZE); // Just to avoid going too far
+            cmd_buffer[0] = RESP_START;
+            cmd_buffer[1] = CMD_VERSION;
+            cmd_buffer[len - 3] = RESP_END;
+
+            USB_PRINTF(cmd_buffer);        
             break;
         case CMD_RESET:
             DD_PRINTF("Forcing an error state in the command hub...\r\n");

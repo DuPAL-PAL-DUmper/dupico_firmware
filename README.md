@@ -29,8 +29,6 @@ Building requires an ARM toolchain, cmake and both [FreeRTOS](https://github.com
 Connecting the USB connection of the Pico to the PCB will present a virtual serial port to which you can connect. Upon connection, you should get strings similar to the following, in your terminal:
 
 ```
-DuPICO - 0.0.2
-
 REMOTE_CONTROL_ENABLED
 ```
 
@@ -104,6 +102,13 @@ This command forces a reset by watchdog of the dupico.
 - Response: `[M x]`
 
 Where `x` is a code that identifies the model of the DuPAL. For dupico boards it is currently `3`.
+
+###### Get Version
+
+- Syntax: `>V<`
+- Response: `[V x.x.x]`
+
+Where `x.x.x` is a code the version number of the firmware.
 
 ###### Self-Test
 
