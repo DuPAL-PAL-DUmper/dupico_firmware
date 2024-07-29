@@ -1,7 +1,7 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
-## [0.0.4] - ????-??-??
+## [0.0.4] - 2024-07-29
 
 ### Changed
 - The extended write now contains a dynamic number of parameters (still limited to 256 bytes of buffer size)
