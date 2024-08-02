@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#define MARKER_STRING "----CUT_HERE----\n"
-
-char get_whirlChar(uint8_t idx);
 uint8_t strutils_str_to_u8(char *str);
 uint32_t strutils_str_to_u32(char *str);
 uint64_t strutils_str_to_u64(char *str);

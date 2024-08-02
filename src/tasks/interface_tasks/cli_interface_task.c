@@ -95,12 +95,12 @@ void cli_interface_task(void *params) {
             while((cmd_queue_len > uxQueueMessagesWaiting(queues->cmd_queue)) && ((ch = getchar_timeout_us(0)) >= 0)) {
                 switch(ch) {
                     case PKT_START:
-                        memset(cmd_buffer, 0, CMD_BUFFER_SIZE);
                         buf_idx = 0;
                         receiving_cmd = true;
                         break;
                     case PKT_END:
                         if(receiving_cmd && buf_idx) {
+                            cmd_buffer[buf_idx] = 0; // Make sure we terminate the command
                             // Parse and react to command
                             cli_parse_command(cmd_buffer, queues);
                         }
