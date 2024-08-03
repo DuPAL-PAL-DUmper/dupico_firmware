@@ -20,7 +20,7 @@ I'm grateful to PCBWay for the support in creating this project.
 
 ### Building
 
-Building requires an ARM toolchain, cmake and both [FreeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel.git) and the [Pico SDK](https://github.com/raspberrypi/pico-sdk.git) checked out, with their locations set respectively in the environment variables `FREERTOS_KERNEL_PATH` and `PICO_SDK_PATH`.
+Building requires an ARM toolchain, [CMake](https://cmake.org/) and both [FreeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel.git) and the [Pico SDK](https://github.com/raspberrypi/pico-sdk.git) checked out, with their locations set respectively in the environment variables `FREERTOS_KERNEL_PATH` and `PICO_SDK_PATH`.
 
 **TODO**: Add better build instructions.
 
