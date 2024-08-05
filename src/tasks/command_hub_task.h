@@ -22,12 +22,10 @@ typedef union {
 
 typedef struct {
     command_hub_cmd_type type;
-    uint32_t id;
     uint64_t data;
 } command_hub_cmd;
 
 typedef struct {
-    uint32_t id;
     command_hub_cmd_type cmd_type;
     command_hub_cmd_response_type type;
     command_hub_cmd_resp_data data;

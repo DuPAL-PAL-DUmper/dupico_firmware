@@ -1,6 +1,17 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.1.0] - 2024-08-04
+### Added
+- Support for binary transmission protocol
+
+### Removed
+- Removed support for the text protocol
+
+### Changed
+- Reduced command buffer to 64 bytes
+- Optimized the number of calls for data transmission via USB
+
 ## [0.0.5] - 2024-08-02
 ### Changed
 - Optimized string to number (and vice-versa) conversions in strutils

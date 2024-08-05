@@ -48,6 +48,11 @@
         "tusb.h": "c",
         "cdc_device.h": "c",
         "msc_device.h": "c",
-        "stdio_uart.h": "c"
+        "stdio_uart.h": "c",
+        "stdint.h": "c",
+        "stdint-gcc.h": "c",
+        "cstdint": "c",
+        "usbd_pvt.h": "c",
+        "freertos.h": "c"
     }
 }

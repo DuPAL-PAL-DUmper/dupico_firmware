@@ -1,43 +1,33 @@
 #include "cli_interface_task.h"
 
 #include <string.h>
+#include <stdint.h>
 
 #include <FreeRTOS.h>
 #include <queue.h>
 #include <task.h>
 
-#include "pico/stdio_usb.h"
+#include <pico/platform.h>
+#include <pico/stdio_usb.h>
+
+#include "cmd_handlers/cmd_handler.h"
+#include "cmd_handlers/bin_cmd_handler.h"
 
 #include "tasks/command_hub_task.h"
 #include "utils/custom_debug.h"
 #include "utils/strutils.h"
 
-#define MODEL "3"
+#define CMD_BUFFER_SIZE 64
+static char cmd_buffer[CMD_BUFFER_SIZE] __attribute__((aligned(4)));
 
-#define DATA_PARAMETER_SIZE (1 + 16) // a whitespace plus hex representation of a 64bit number
-
-#define CMD_BUFFER_SIZE 256
-#define PKT_START '>'
-#define PKT_END '<'
-#define RESP_START '['
-#define RESP_END ']'
-
-#define CMD_WRITE 'W'
-#define CMD_EXT_WRITE 'E' // This supports sending 8 writes at once
-#define CMD_READ 'R'
-#define CMD_RESET 'K'
-#define CMD_POWER 'P'
-#define CMD_MODEL 'M'
-#define CMD_TEST 'T'
-#define CMD_VERSION 'V'
-
-#define RESP_ERROR "CMD_ERR\n\r"
-#define RESP_MODEL "[M " MODEL "]\n\r"
-
-static char cmd_buffer[CMD_BUFFER_SIZE];
+const handler_funcs __in_flash() HANDLER_MAP[] = {
+    {
+        .c_handler = bin_cmd_handler,
+        .cr_handler = bin_response_handler
+    }
+};
 
 static bool cli_test_mode(command_hub_queues *queues);
-static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues);
 static void cli_request_reset(command_hub_queues *queues);
 static void cli_handle_responses(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues);
 
@@ -47,8 +37,7 @@ static void cli_request_reset(command_hub_queues *queues) {
     // Tell the command hub to reset
     xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
         .type = CMDH_RESET,
-        .data = 0,
-        .id = 0
+        .data = 0
     }), portMAX_DELAY);
 
     if(!xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY)) {
@@ -59,13 +48,22 @@ static void cli_request_reset(command_hub_queues *queues) {
 }
 
 void cli_interface_task(void *params) {
-    command_hub_queues *queues = (command_hub_queues*)params; 
+    uint8_t handler_num = 0; // We start in the classic text handler mode
+    uint16_t cmd_handler_response;
+    
+    command_hub_queues *queues = (command_hub_queues*)params;
 
-    uint8_t buf_idx = 0;
-    bool receiving_cmd = false;
     bool term_connected_state = false;
     bool cur_term_connected = false;
     int ch;
+
+    handler_config cmd_handler_config = {
+        .buf_idx = 0,
+        .buf_size = CMD_BUFFER_SIZE,
+        .cmd_buffer = cmd_buffer,
+        .queues = queues,
+        .test_func = cli_test_mode
+    };
 
     UBaseType_t cmd_queue_len = uxQueueGetQueueLength(queues->cmd_queue);
 
@@ -83,189 +81,44 @@ void cli_interface_task(void *params) {
             } else { // New connection!
                 D_PRINTF("Serial terminal connected!\r\n");
 
-                buf_idx = 0;
-                receiving_cmd = false;
+                // Reset command handler to default text based commands
+                cmd_handler_config.buf_idx = 0;
+                handler_num = 0;
 
                 USB_PRINTF("REMOTE_CONTROL_ENABLED\r\n");
             }
         }
 
         if(term_connected_state) {
-            // If we have characters and space in the destination command queue, keep parsing...
-            while((cmd_queue_len > uxQueueMessagesWaiting(queues->cmd_queue)) && ((ch = getchar_timeout_us(0)) >= 0)) {
-                switch(ch) {
-                    case PKT_START:
-                        buf_idx = 0;
-                        receiving_cmd = true;
-                        break;
-                    case PKT_END:
-                        if(receiving_cmd && buf_idx) {
-                            cmd_buffer[buf_idx] = 0; // Make sure we terminate the command
-                            // Parse and react to command
-                            cli_parse_command(cmd_buffer, queues);
-                        }
-                        receiving_cmd = false;
-                        buf_idx = 0;
-                        break;
-                    default:
-                        if(receiving_cmd && (buf_idx < (CMD_BUFFER_SIZE - 1))) { // Leave one empty space for a null
-                            cmd_buffer[buf_idx++] = ch & 0xFF;
-                        }
-                        break;
-                }
-
-                taskYIELD();
+            int count = 0;
+            while((cmd_queue_len > uxQueueMessagesWaiting(queues->cmd_queue)) &&
+                ((count = stdio_usb.in_chars(cmd_handler_config.cmd_buffer + cmd_handler_config.buf_idx, cmd_handler_config.buf_size - cmd_handler_config.buf_idx)) > 0)) {
+                cmd_handler_config.buf_idx += count;
+                cmd_handler_response = HANDLER_MAP[handler_num].c_handler(&cmd_handler_config);
             }
         }
 
-        cli_handle_responses(cmd_buffer, queues);
+        HANDLER_MAP[handler_num].cr_handler(&cmd_handler_config);
 
+        // Check if we got a request to switch protocol
+        if((cmd_handler_response & 0xFF00) == CMD_HANDLER_SWITCH_PROTO) {
+            uint8_t req_proto = cmd_handler_response & 0xFF;
+            D_PRINTF("Switch to protocol %.2X requested.\r\n", req_proto);
+            cmd_handler_response = CMD_HANDLER_NO_CMD;
+
+            cmd_handler_config.buf_idx = 0;
+
+            if(req_proto >= (sizeof(HANDLER_MAP)/sizeof(handler_funcs))) {
+                D_PRINTF("Protocol %.2X not supported, switching back to text mode.\r\n", req_proto);
+                req_proto = 0;
+            }
+            
+            // Switch the protocol
+            handler_num = req_proto;
+        }
+        
         taskYIELD();
     } 
-}
-
-static void cli_handle_responses(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues) {
-    command_hub_cmd_resp cmdh_resp;
-
-    while(xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), 0)) {
-        cmd_buffer[0] = RESP_START;
-        cmd_buffer[2] = ' ';
-
-        DD_PRINTF("Got a response for command type %d\r\n", cmdh_resp.cmd_type);
-
-        switch(cmdh_resp.cmd_type) {
-            case CMDH_TOGGLE_POWER:
-                cmd_buffer[1] = CMD_POWER;
-                cmd_buffer[3] = cmdh_resp.data.data ? '1' : '0';
-                cmd_buffer[4] = RESP_END;
-                cmd_buffer[5] = '\r';
-                cmd_buffer[6] = '\n';
-                cmd_buffer[7] = 0;
-
-                USB_PRINTF(cmd_buffer);
-                break;
-            case CMDH_READ_PINS:
-                cmd_buffer[1] = CMD_READ;
-                strutils_u64_to_str(&cmd_buffer[3], cmdh_resp.data.data);
-                cmd_buffer[19] = RESP_END;
-                cmd_buffer[20] = '\r';
-                cmd_buffer[21] = '\n';
-                cmd_buffer[22] = 0;
-                
-                USB_PRINTF(cmd_buffer);
-                break;
-            case CMDH_WRITE_PINS:
-                cmd_buffer[1] = CMD_WRITE;
-                strutils_u64_to_str(&cmd_buffer[3], cmdh_resp.data.data);
-                cmd_buffer[19] = RESP_END;
-                cmd_buffer[20] = '\r';
-                cmd_buffer[21] = '\n';
-                cmd_buffer[22] = 0;
-                
-                USB_PRINTF(cmd_buffer);
-                break;
-            case CMDH_RESET: // Nothing to do
-            default:
-                break;
-        }
-    }
-}
-
-static void cli_parse_command(char cmd_buffer[CMD_BUFFER_SIZE], command_hub_queues *queues) {
-    command_hub_cmd_resp cmdh_resp;
-
-    switch(cmd_buffer[0]) {
-        case CMD_MODEL:
-            USB_PRINTF(RESP_MODEL);
-            break;
-        case CMD_TEST:
-            // In this case we handle the response directly in this function
-            cmd_buffer[0] = RESP_START;
-            cmd_buffer[1] = CMD_TEST;
-            cmd_buffer[2] = ' ';
-            cmd_buffer[3] = cli_test_mode(queues) ? '1' : '0';
-            cmd_buffer[4] = RESP_END;
-            cmd_buffer[5] = '\r';
-            cmd_buffer[6] = '\n';
-            cmd_buffer[7] = 0;
-
-            USB_PRINTF(cmd_buffer);
-            break;
-        case CMD_VERSION:
-            // We handle the response directly here
-            strncpy(cmd_buffer, "   " FW_VERSION " \r\n", CMD_BUFFER_SIZE - 1);
-            size_t len = strnlen(cmd_buffer, CMD_BUFFER_SIZE); // Just to avoid going too far
-            cmd_buffer[0] = RESP_START;
-            cmd_buffer[1] = CMD_VERSION;
-            cmd_buffer[len - 3] = RESP_END;
-
-            USB_PRINTF(cmd_buffer);        
-            break;
-        case CMD_RESET:
-            DD_PRINTF("Forcing an error state in the command hub...\r\n");
-            xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
-                .type = CMDH_FORCE_ERROR,
-                .data = 0,
-                .id = 0
-            }), portMAX_DELAY);
-            break;
-        case CMD_POWER: {
-                bool relay_pwr = cmd_buffer[2] != '0'; // Check that we get something different than a '0'
-
-                xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
-                    .type = CMDH_TOGGLE_POWER,
-                    .data = relay_pwr,
-                    .id = 0
-                }), portMAX_DELAY);
-            }
-            break;
-        case CMD_READ: {
-                xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
-                    .type = CMDH_READ_PINS,
-                    .data = 0,
-                    .id = 0
-                }), portMAX_DELAY);
-            }
-            break;
-        case CMD_WRITE: {
-                xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
-                    .type = CMDH_WRITE_PINS,
-                    .data = strutils_str_to_u64(&cmd_buffer[2]),
-                    .id = 0
-                }), portMAX_DELAY);
-            }   
-            break;
-        case CMD_EXT_WRITE: {
-                size_t cmd_len = strnlen(cmd_buffer, CMD_BUFFER_SIZE - 1);
-                size_t num_entries = (cmd_len - 1)/DATA_PARAMETER_SIZE;
-
-                // Check that the number of parameters is perfectly divisible
-                if((cmd_len - 1) % DATA_PARAMETER_SIZE) {
-                    D_PRINTF("Got an extended write of length %u\r\n", cmd_len);
-                    USB_PRINTF(RESP_ERROR); 
-                    break;
-                }
-
-                // Check that we can fit the commands inside the queues without blocking
-                if(num_entries > CMD_QUEUE_SIZE) {
-                    D_PRINTF("Got an extended write with %u entries, max supported %u\r\n", num_entries, CMD_QUEUE_SIZE);
-                    USB_PRINTF(RESP_ERROR); 
-                    break;                    
-                }
-
-                for(size_t idx = 0; idx < num_entries; idx++) {
-                    xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
-                        .type = CMDH_WRITE_PINS,
-                        .data = strutils_str_to_u64(&cmd_buffer[2 + DATA_PARAMETER_SIZE * idx]),
-                        .id = 0
-                    }), portMAX_DELAY);                    
-                }
-            }
-            break;
-        default:
-            USB_PRINTF(RESP_ERROR);
-            break;
-    }       
 }
 
 static bool cli_test_mode(command_hub_queues *queues) {
@@ -280,8 +133,7 @@ static bool cli_test_mode(command_hub_queues *queues) {
     DD_PRINTF("Enabling the relay.\r\n");
     xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
         .type = CMDH_TOGGLE_POWER,
-        .data = 1,
-        .id = 0
+        .data = 1
     }), portMAX_DELAY);
     xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
 
@@ -289,8 +141,7 @@ static bool cli_test_mode(command_hub_queues *queues) {
         DD_PRINTF("Testing %.16X.\r\n", test_patterns[idx]);
         xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
             .type = CMDH_WRITE_PINS,
-            .data = test_patterns[idx],
-            .id = 0
+            .data = test_patterns[idx]
         }), portMAX_DELAY);
         xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
 
@@ -306,8 +157,7 @@ static bool cli_test_mode(command_hub_queues *queues) {
     DD_PRINTF("Disabling the relay.\r\n");
     xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
         .type = CMDH_TOGGLE_POWER,
-        .data = 0,
-        .id = 0
+        .data = 0
     }), portMAX_DELAY);
     xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
 

@@ -108,7 +108,6 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
 
 static void handle_inbound_commands_simple_response(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, command_hub_cmd_response_type resp, uint64_t data) {
     xQueueSend(resp_queue, (void*)& ((command_hub_cmd_resp){
-        .id = cmd->id,
         .cmd_type = cmd->type,
         .type = resp,
         .data = (command_hub_cmd_resp_data) {
