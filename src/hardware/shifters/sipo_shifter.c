@@ -5,8 +5,11 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#define _NOP() asm volatile ( "nop" );
+
 static inline void toggle_SRCLK(const SIPO_Config* cfg);
 static inline void toggle_RCLK(const SIPO_Config* cfg);
+static inline void nop_delay(uint16_t delay);
 
 void sipo_shifter_init(const SIPO_Config* cfg) {
     // Init the pins
@@ -24,6 +27,10 @@ void sipo_shifter_init(const SIPO_Config* cfg) {
                         _BV(cfg->srclr_pin),
                         0xFFFFFFFF);
 
+    // There's some load on this pin (multiple shift registers, plus a led)
+    gpio_set_slew_rate(cfg->srclk_pin, GPIO_SLEW_RATE_FAST);
+    gpio_set_drive_strength(cfg->srclk_pin, GPIO_DRIVE_STRENGTH_8MA);
+
     // Set /OE high, everything else low, including /SRCLR, to reset the registers
     gpio_put_masked(_BV(cfg->oe_pin) |
                     _BV(cfg->ser_pin) |
@@ -33,15 +40,13 @@ void sipo_shifter_init(const SIPO_Config* cfg) {
 
     vTaskDelay(500);
     gpio_put(cfg->srclr_pin, true); // /SRCLR to high
-    taskYIELD();
+    nop_delay(200);
     gpio_put(cfg->oe_pin, false); // Enable the outputs
 }
 
 void sipo_shifter_set(const SIPO_Config* cfg, uint64_t val) {
     for(uint idx = 0; idx < cfg->len; idx++) {
-        if((val >> (cfg->len - (idx + 1))) & 0x01) gpio_put(cfg->ser_pin, true); // High
-        else gpio_put(cfg->ser_pin, false); // Low
-
+        gpio_put(cfg->ser_pin, ((val >> (cfg->len - (idx + 1))) & 0x01)); 
         toggle_SRCLK(cfg);
     }
 
@@ -50,16 +55,21 @@ void sipo_shifter_set(const SIPO_Config* cfg, uint64_t val) {
 
 static inline void toggle_SRCLK(const SIPO_Config* cfg) {
     // This will advance the shift register
-    taskYIELD();
+    nop_delay(5);
     gpio_put(cfg->srclk_pin, true); // set clock to high
-    taskYIELD();
+    nop_delay(5);
     gpio_put(cfg->srclk_pin, false); // set clock to low
+    nop_delay(5);
 }
 
 static inline void toggle_RCLK(const SIPO_Config* cfg) {
     // This will store the data in the shift register
-    taskYIELD();
+    nop_delay(5);
     gpio_put(cfg->rclk_pin, true); // set clock to high
-    taskYIELD();
+    nop_delay(5);
     gpio_put(cfg->rclk_pin, false); // set clock to low
+}
+
+static inline void nop_delay(uint16_t delay) {
+    while(delay--) _NOP();
 }

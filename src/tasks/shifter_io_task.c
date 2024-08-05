@@ -32,6 +32,8 @@ void shifter_io_task(void *params) {
                     break;
             }
         }
+
+        taskYIELD();
     }
 
     vTaskDelete(NULL);

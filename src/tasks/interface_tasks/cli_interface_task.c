@@ -137,6 +137,8 @@ static bool cli_test_mode(command_hub_queues *queues) {
     }), portMAX_DELAY);
     xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY);
 
+    vTaskDelay(100); // Give some time for the shifter outputs to stabilize
+
     for(uint8_t idx = 0; idx < tot_patterns; idx++) {
         DD_PRINTF("Testing %.16X.\r\n", test_patterns[idx]);
         xQueueSend(queues->cmd_queue, (void*)& ((command_hub_cmd){
@@ -152,6 +154,8 @@ static bool cli_test_mode(command_hub_queues *queues) {
             break;
         }
     }
+    
+    vTaskDelay(100);
 
     // Disable the relay
     DD_PRINTF("Disabling the relay.\r\n");

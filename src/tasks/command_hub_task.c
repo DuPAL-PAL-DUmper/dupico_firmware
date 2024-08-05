@@ -47,6 +47,7 @@ static bool reset_task(const shifter_io_task_params* shifter_params, const led_s
 
 static void toggle_relay(bool state) {
     gpio_put(RELAY_ENABLE_GPIO, !state);
+    vTaskDelay(50);
 }
 
 static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandle_t resp_queue, const shifter_io_task_params* shifter_params, const led_status_task_params* lstatus_params, command_hub_status *hub_status) {

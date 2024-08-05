@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.1.1] - 2024-08-05
+### Changed
+- Avoid yielding continuously to other tasks when working with shift registers
+
 ## [0.1.0] - 2024-08-04
 ### Added
 - Support for binary transmission protocol
