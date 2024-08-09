@@ -1,6 +1,6 @@
 #include "strutils.h"
 
-#include <pico/platform.h>
+#include <pico.h>
 
 const uint8_t __in_flash() ASCII_HEX_MAP[256 - 0x30] = { // Offset is 0x30
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,       // 0x30 - 0x39

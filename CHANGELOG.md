@@ -1,6 +1,11 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.1.2] - 2024-08-09
+### Changed
+- Updated pico-sdk and FreeRTOS-Kernel
+- Forcing CLI interface task to a single core is no longer needed
+
 ## [0.1.1] - 2024-08-05
 ### Changed
 - Avoid yielding continuously to other tasks when working with shift registers

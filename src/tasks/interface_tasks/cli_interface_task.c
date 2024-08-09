@@ -7,7 +7,7 @@
 #include <queue.h>
 #include <task.h>
 
-#include <pico/platform.h>
+#include <pico.h>
 #include <pico/stdio_usb.h>
 
 #include "cmd_handlers/cmd_handler.h"

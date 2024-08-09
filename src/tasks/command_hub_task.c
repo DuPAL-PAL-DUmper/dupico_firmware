@@ -160,9 +160,6 @@ void command_hub_task(void *params) {
 
     // Create and start the task to handle CLI interface
     xTaskCreate(cli_interface_task, "CLIInterfaceTask", configMINIMAL_STACK_SIZE * 2, (void*)&cli_queues, BASELINE_TASK_PRIORITY, &cli_interface_t_handle);
-    // See https://github.com/raspberrypi/pico-sdk/issues/1453
-    // Force this task on core 0...
-    vTaskCoreAffinitySet(cli_interface_t_handle, 0x01);
 
     // Create and start the task to handle the status led
     xTaskCreate(led_status_task, "LEDStatusTask", configMINIMAL_STACK_SIZE, (void*)&lstatus_params, BASELINE_TASK_PRIORITY, &lstatus_t_handle);

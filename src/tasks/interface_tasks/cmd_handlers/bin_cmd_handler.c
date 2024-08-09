@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-#include <pico/platform.h>
+#include <pico.h>
 #include <pico/stdio.h>
 #include <pico/stdio_usb.h>
 

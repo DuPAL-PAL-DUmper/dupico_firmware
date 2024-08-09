@@ -1,7 +1,7 @@
 #include "binutils.h"
 
 #include <string.h>
-#include <pico/platform.h>
+#include <pico.h>
 
 uint64_t binutils_read_u64_le(uint8_t *buf) {
     uint64_t data = 0;
