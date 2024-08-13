@@ -49,7 +49,7 @@ void piso_shifter_init(const PISO_Config* cfg) {
     // Clear the reset
     gpio_put(cfg->clr_pin, true);
 
-    nop_delay(10);
+    nop_delay(5);
 }
 
 uint64_t piso_shifter_get(const PISO_Config* cfg) {
@@ -57,23 +57,23 @@ uint64_t piso_shifter_get(const PISO_Config* cfg) {
 
     // Enable clock and inputs, then set clock to low
     gpio_put_masked(_BV(cfg->ce_pin) | _BV(cfg->pe_pin) | _BV(cfg->clk_pin), 0);
-    nop_delay(5);
+    nop_delay(1);
 
     // Set the clock to high
     gpio_put(cfg->clk_pin, true);
-    nop_delay(5);
+    nop_delay(1);
     
     // Disable the inputs
     gpio_put(cfg->pe_pin, true);
 
     for (uint idx = 0; idx < cfg->len; idx++) {
         gpio_put(cfg->clk_pin, true); // Clock out the data
-        nop_delay(10);
+        nop_delay(5);
 
         data |= gpio_get(cfg->ser_pin) ? (((uint64_t)1) << (cfg->len - (idx + 1))) : 0;
         
         gpio_put(cfg->clk_pin, false); 
-        nop_delay(5);
+        nop_delay(1);
     }
 
     // Disable the clock and inputs

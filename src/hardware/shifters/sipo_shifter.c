@@ -40,7 +40,7 @@ void sipo_shifter_init(const SIPO_Config* cfg) {
 
     vTaskDelay(500);
     gpio_put(cfg->srclr_pin, true); // /SRCLR to high
-    nop_delay(200);
+    nop_delay(50);
     gpio_put(cfg->oe_pin, false); // Enable the outputs
 }
 
@@ -55,18 +55,18 @@ void sipo_shifter_set(const SIPO_Config* cfg, uint64_t val) {
 
 static inline void toggle_SRCLK(const SIPO_Config* cfg) {
     // This will advance the shift register
-    nop_delay(5);
+    nop_delay(1);
     gpio_put(cfg->srclk_pin, true); // set clock to high
-    nop_delay(5);
+    nop_delay(1);
     gpio_put(cfg->srclk_pin, false); // set clock to low
-    nop_delay(5);
+    nop_delay(1);
 }
 
 static inline void toggle_RCLK(const SIPO_Config* cfg) {
     // This will store the data in the shift register
-    nop_delay(5);
+    nop_delay(1);
     gpio_put(cfg->rclk_pin, true); // set clock to high
-    nop_delay(5);
+    nop_delay(1);
     gpio_put(cfg->rclk_pin, false); // set clock to low
 }
 

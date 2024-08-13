@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.1.3] - 2024-08-13
+### Changed
+- Slightly reduce delays in shifter code
+
 ## [0.1.2] - 2024-08-09
 ### Changed
 - Updated pico-sdk and FreeRTOS-Kernel
