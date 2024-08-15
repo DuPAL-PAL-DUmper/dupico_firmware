@@ -78,7 +78,29 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
                 D_PRINTF("Error handling a READ request!\r\n");
                 *hub_status = ERROR;
             }
+            break;
+        case CMDH_OSC_DET: {
+                DD_PRINTF("Got a OSC_DET request, count %u\r\n", (cmd->data & 0xFF));
+                uint64_t flipped_pins = 0;
 
+                for(uint16_t idx = 0; idx < (cmd->data & 0xFF); idx++) {
+                    xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
+                        .cmd = SHF_READ,
+                        .param = 0
+                    }), portMAX_DELAY);
+
+                    if(xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), portMAX_DELAY) == pdTRUE) {
+                       flipped_pins ^= shft_data; 
+                    } else {
+                        handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_ERROR, 0);
+                        D_PRINTF("Error handling a OSC_DET request!\r\n");
+                        *hub_status = ERROR;
+                        break;
+                    }  
+                }
+
+                if(*hub_status != ERROR) handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_OK, flipped_pins);
+            }
             break;
         case CMDH_WRITE_PINS:
             DD_PRINTF("Got a WRITE request %llx\r\n", cmd->data);

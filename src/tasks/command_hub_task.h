@@ -8,7 +8,8 @@ typedef enum {
     CMDH_FORCE_ERROR,
     CMDH_WRITE_PINS,
     CMDH_READ_PINS,
-    CMDH_TOGGLE_POWER
+    CMDH_TOGGLE_POWER,
+    CMDH_OSC_DET
 } command_hub_cmd_type;
 
 typedef enum {

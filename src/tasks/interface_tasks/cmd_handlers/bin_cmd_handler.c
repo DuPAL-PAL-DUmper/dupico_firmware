@@ -21,6 +21,7 @@
 #define BIN_CMD_TEST 0x05
 #define BIN_CMD_VERSION 0x06
 #define BIN_CMD_SWITCH_PROTO 0x07
+#define BIN_CMD_OSC_DET 0x08
 
 #define BIN_CMD_ERROR 0xFF
 
@@ -32,6 +33,7 @@
 #define CMD_TEST_LEN 2
 #define CMD_VERSION_LEN 2
 #define CMD_SWITCH_PROTO_LEN 3
+#define CMD_OSC_DET_LEN 3
 
 #define RESP_WRITE_LEN 9
 #define RESP_READ_LEN 9
@@ -41,6 +43,7 @@
 #define RESP_TEST_LEN 2
 #define RESP_VERSION_LEN 11
 #define RESP_SWITCH_PROTO_LEN 2
+#define RESP_OSC_DET_LEN 9
 
 // This map reports the expected length for every command
 const uint8_t __in_flash() CMD_LEN_MAP[] = {
@@ -51,7 +54,8 @@ const uint8_t __in_flash() CMD_LEN_MAP[] = {
     CMD_MODEL_LEN,
     CMD_TEST_LEN,
     CMD_VERSION_LEN,
-    CMD_SWITCH_PROTO_LEN
+    CMD_SWITCH_PROTO_LEN,
+    CMD_OSC_DET_LEN
 };
 
 const uint8_t __in_flash() RESP_LEN_MAP[] = {
@@ -62,7 +66,8 @@ const uint8_t __in_flash() RESP_LEN_MAP[] = {
     RESP_MODEL_LEN,
     RESP_TEST_LEN,
     RESP_VERSION_LEN,
-    RESP_SWITCH_PROTO_LEN
+    RESP_SWITCH_PROTO_LEN,
+    RESP_OSC_DET_LEN
 };
 
 static inline void reset_handler_config(handler_config* config);
@@ -113,6 +118,11 @@ void bin_response_handler(handler_config* config) {
                 binutils_write_u64_le(&(config->cmd_buffer[1]), cmdh_resp.data.data);
                 response_ready = true;
                 break;
+            case CMDH_OSC_DET:
+                config->cmd_buffer[0] = BIN_CMD_OSC_DET;
+                binutils_write_u64_le(&(config->cmd_buffer[1]), cmdh_resp.data.data);
+                response_ready = true;
+                break;
             case CMDH_RESET: // Nothing to do
             default:
                 reset_handler_config(config);
@@ -122,8 +132,7 @@ void bin_response_handler(handler_config* config) {
     
     if(response_ready) {
         transmit_response(config);
-        reset_handler_config(config);
-        
+        reset_handler_config(config);      
     }
 }
 
@@ -180,6 +189,12 @@ static uint16_t bin_parse_command(handler_config* config) {
         case BIN_CMD_SWITCH_PROTO:
             resp = CMD_HANDLER_SWITCH_PROTO | config->cmd_buffer[1];
             response_ready = true;
+            break;
+        case BIN_CMD_OSC_DET:
+            xQueueSend(config->queues->cmd_queue, (void*)& ((command_hub_cmd){
+                .type = CMDH_OSC_DET,
+                .data = config->cmd_buffer[1]
+            }), portMAX_DELAY);
             break;
         default: 
             reset_handler_config(config);

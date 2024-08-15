@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.1.4] - 2024-08-15
+### Added
+- Added OSC_DET command to try and detect pins that are oscillating
+
 ## [0.1.3] - 2024-08-13
 ### Changed
 - Slightly reduce delays in shifter code
