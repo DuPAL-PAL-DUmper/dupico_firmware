@@ -92,7 +92,7 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
 
                     if(xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), portMAX_DELAY) == pdTRUE) {
                         if(idx > 0) {
-                            flipped_pins |= shft_data ^ prev_shft_data;
+                            flipped_pins |= (shft_data ^ prev_shft_data);
                         } else {
                             prev_shft_data = shft_data;
                         }
