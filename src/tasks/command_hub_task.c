@@ -83,8 +83,12 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
                 DD_PRINTF("Got a OSC_DET request, count %u\r\n", (cmd->data & 0xFF));
                 uint64_t flipped_pins = 0;
                 uint64_t prev_shft_data = 0;
+                uint8_t tries = cmd->data & 0xFF;
 
-                for(uint16_t idx = 0; idx < (cmd->data & 0xFF); idx++) {
+                // For this to make sense, we need to try at least twice
+                tries = (tries < 2) ? 2 : tries;
+
+                for(uint8_t idx = 0; idx < tries; idx++) {
                     xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
                         .cmd = SHF_READ,
                         .param = 0
