@@ -43,7 +43,7 @@ static void cli_request_reset(command_hub_queues *queues) {
     if(!xQueueReceive(queues->resp_queue, (void*)&(cmdh_resp), portMAX_DELAY)) {
         D_PRINTF("Error requesting a reset from the command hub\r\n");
     } else {
-        DD_PRINTF("Reset from command hub responded with %u - %u\r\n", cmdh_resp.id, cmdh_resp.type);
+        DD_PRINTF("Reset from command hub responded with %u\r\n", cmdh_resp.type);
     }    
 }
 
