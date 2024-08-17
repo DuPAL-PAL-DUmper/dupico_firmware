@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.2.1] - 2024-08-17
+### Changed
+- Finish moving SIPO code to PIO. All bitbanging is now gone.
+
 ## [0.2.0] - 2024-08-17
 ### Changed
 - PISO and SIPO shifters are now controlled via the PIO

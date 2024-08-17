@@ -2,12 +2,23 @@
 
 .program sipo
 .side_set 1
+    ; Initialization
+    pull block side 0   ; Pull in the number of bits we have to read (minus 1)
+    out y, 32 side 0    ; Shift out to Y scratch register, so we empty the OSR
+    mov x, y side 0     ; Copy Y to X
 
-;.wrap_target
-    out x, 1 side 0 
-    mov pins, x side 0
-    in pins, 1 side 1 [2]
-;.wrap
+.wrap_target
+_bitloop:
+    pull ifempty block side 0   ; If we have shifted out everything from OSR, pull and block
+    out pins, 1 side 0          ; Shift out one bit to the serial pin
+    jmp x-- _bitloop side 1     ; Loop and clock out the pin
+
+    ; Clocking out of data completed
+    mov x, y side 0             ; Copy again Y to X, so we can begin the loop anew
+    set pins, 1 side 0 [1]      ; Toggle srclk to output the data
+    set pins, 0 side 0
+    in pins, 1 side 0           ; Output one bit to RX FIFO, just so we can synchronize from outside
+.wrap
 
 % c-sdk {
     #include <FreeRTOS.h>
@@ -17,28 +28,47 @@
     #include <hardware/shifters/sipo_shifter.h>
     #include <utils/common_macros.h>
 
+    #define BLK_SIZE 64
     static inline void pio_sipo_program_init(PIO pio, uint sm, uint prog_offs, float clkdiv, const SIPO_Config* cfg) {
         pio_sm_config c = sipo_program_get_default_config(prog_offs);
 
         sm_config_set_in_pins(&c, cfg->ser_pin);
         sm_config_set_out_pins(&c, cfg->ser_pin, 1);
         sm_config_set_sideset_pins(&c, cfg->srclk_pin);
+        sm_config_set_set_pins(&c, cfg->rclk_pin, 1);
 
-        sm_config_set_out_shift(&c, false, true, 32);
-        sm_config_set_in_shift(&c, false, true, 32);
+        sm_config_set_out_shift(&c, false, false, 32);
+        sm_config_set_in_shift(&c, false, true, 1);
         sm_config_set_clkdiv(&c, clkdiv);
-
 
         pio_gpio_init(pio, cfg->ser_pin);
         pio_gpio_init(pio, cfg->srclk_pin);
+        pio_gpio_init(pio, cfg->rclk_pin);
+        pio_gpio_init(pio, cfg->oe_pin);
+        pio_gpio_init(pio, cfg->srclr_pin);
 
-        pio_sm_set_consecutive_pindirs(pio, sm, cfg->srclk_pin, 2, true);
+        pio_sm_set_consecutive_pindirs(pio, sm, cfg->rclk_pin, 5, true);
 
-        pio_sm_set_pins_with_mask(pio, sm, 0,
+        // Setting /OE (output enable) high, everything else to low
+        pio_sm_set_pins_with_mask(pio, sm, _BV(cfg->oe_pin),
+                    _BV(cfg->rclk_pin) |
                     _BV(cfg->srclk_pin)  |
-                    _BV(cfg->ser_pin));
+                    _BV(cfg->ser_pin) | 
+                    _BV(cfg->oe_pin) |
+                    _BV(cfg->srclr_pin));
+
+        vTaskDelay(500);
+
+        // Setting /SRCLR high
+        pio_sm_set_pins_with_mask(pio, sm, _BV(cfg->srclr_pin), _BV(cfg->srclr_pin));
+        
+        vTaskDelay(500);
+        
+        // Enable the outputs by lowering /OE
+        pio_sm_set_pins_with_mask(pio, sm, 0, _BV(cfg->oe_pin));
 
         pio_sm_init(pio, sm, prog_offs, &c);
-        pio_sm_set_enabled(pio, sm, true);      
+        pio_sm_set_enabled(pio, sm, true);
+        pio_sm_put_blocking(pio, sm, BLK_SIZE - 1); // Load the number of bits (-1) to load before triggering rclk
     }
 %}
