@@ -1,0 +1,68 @@
+.pio_version 0
+
+.program piso
+.wrap_target
+    set pins,0b1000  [1]    ; Set all pins to low (except CLR)
+    
+    pull block
+    mov x, osr              ; Move OSR into the loop counter (x)
+
+    set pins,0b1010  [1]    ; Set clock to high
+    set pins,0b1011  [1]    ; Set clock and pe to high
+
+_bitloop:
+    set pins,0b1011 [6]    ; Set clock (and PE) to high
+    in pins, 1             ; Read the serial input
+    set pins,0b1001 [1]    ; Lower the clock, and delay
+    jmp x-- _bitloop       ; Iterate until the loop count is 0
+
+    set pins,0b1101  [1]    ; Set CE and PE to high, CLK to low
+.wrap
+
+% c-sdk {
+    #include <FreeRTOS.h>
+
+    #include "hardware/gpio.h"
+    
+    #include <hardware/shifters/piso_shifter.h>
+    #include <utils/common_macros.h>
+
+    static inline void pio_piso_program_init(PIO pio, uint sm, uint prog_offs, float clkdiv, const PISO_Config* cfg) {
+        pio_sm_config c = piso_program_get_default_config(prog_offs);
+
+        sm_config_set_in_pins(&c, cfg->ser_pin);
+        sm_config_set_set_pins(&c, cfg->pe_pin, 4);
+
+        //sm_config_set_out_shift(&c, false, false, 32);
+        sm_config_set_in_shift(&c, false, true, 32);
+        sm_config_set_clkdiv(&c, clkdiv);
+
+        pio_gpio_init(pio, cfg->pe_pin);
+        pio_gpio_init(pio, cfg->clk_pin);
+        pio_gpio_init(pio, cfg->ce_pin);
+        pio_gpio_init(pio, cfg->clr_pin);
+        
+        pio_sm_set_consecutive_pindirs(pio, sm, cfg->ser_pin, 1, false);
+        pio_sm_set_consecutive_pindirs(pio, sm, cfg->pe_pin, 4, true);
+
+        // Initialize the pins
+        // Set /CE and /PE to high, all the rest to low
+        pio_sm_set_pins_with_mask(pio, sm, 
+                    _BV(cfg->ce_pin)  |
+                    _BV(cfg->pe_pin),
+                    _BV(cfg->ce_pin)  |
+                    _BV(cfg->pe_pin)  |
+                    _BV(cfg->clk_pin) |
+                    _BV(cfg->clr_pin));
+
+        vTaskDelay(500);
+
+        // now set CLR to high
+        pio_sm_set_pins_with_mask(pio, sm, 
+                    _BV(cfg->clr_pin),
+                    _BV(cfg->clr_pin));
+
+        pio_sm_init(pio, sm, prog_offs, &c);
+        pio_sm_set_enabled(pio, sm, true);      
+    }
+%}

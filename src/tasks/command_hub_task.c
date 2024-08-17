@@ -162,9 +162,9 @@ void command_hub_task(void *params) {
 
     shifter_io_task_params shifter_params = {
         .piso_cfg = {
-            .ce_pin = PISO_INH_GPIO,
             .pe_pin = PISO_SH_GPIO,
             .clk_pin = PISO_CLK_GPIO,
+            .ce_pin = PISO_INH_GPIO,
             .clr_pin = PISO_CLR_GPIO,
             .ser_pin = PISO_SER_GPIO,
             .len = 40

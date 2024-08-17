@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <hardware/pio.h>
+
 // Driver for 74'595 parallel-load shift register
 
 typedef struct {
@@ -16,6 +18,6 @@ typedef struct {
 } SIPO_Config;
 
 void sipo_shifter_init(const SIPO_Config* cfg);
-void sipo_shifter_set(const SIPO_Config* cfg, uint64_t val);
+void sipo_shifter_set(const SIPO_Config* cfg, uint64_t val, PIO pio, uint sm);
 
 #endif /* _SIPO_SHIFTER_HEADER_ */

@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.2.0] - 2024-08-17
+### Changed
+- PISO and SIPO shifters are now controlled via the PIO
+
 ## [0.1.4] - 2024-08-15
 ### Added
 - Added OSC_DET command to try and detect pins that are oscillating

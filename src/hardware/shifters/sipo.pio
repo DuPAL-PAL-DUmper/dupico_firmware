@@ -1,0 +1,44 @@
+.pio_version 0
+
+.program sipo
+.side_set 1
+
+;.wrap_target
+    out x, 1 side 0 
+    mov pins, x side 0
+    in pins, 1 side 1 [2]
+;.wrap
+
+% c-sdk {
+    #include <FreeRTOS.h>
+
+    #include "hardware/gpio.h"
+    
+    #include <hardware/shifters/sipo_shifter.h>
+    #include <utils/common_macros.h>
+
+    static inline void pio_sipo_program_init(PIO pio, uint sm, uint prog_offs, float clkdiv, const SIPO_Config* cfg) {
+        pio_sm_config c = sipo_program_get_default_config(prog_offs);
+
+        sm_config_set_in_pins(&c, cfg->ser_pin);
+        sm_config_set_out_pins(&c, cfg->ser_pin, 1);
+        sm_config_set_sideset_pins(&c, cfg->srclk_pin);
+
+        sm_config_set_out_shift(&c, false, true, 32);
+        sm_config_set_in_shift(&c, false, true, 32);
+        sm_config_set_clkdiv(&c, clkdiv);
+
+
+        pio_gpio_init(pio, cfg->ser_pin);
+        pio_gpio_init(pio, cfg->srclk_pin);
+
+        pio_sm_set_consecutive_pindirs(pio, sm, cfg->srclk_pin, 2, true);
+
+        pio_sm_set_pins_with_mask(pio, sm, 0,
+                    _BV(cfg->srclk_pin)  |
+                    _BV(cfg->ser_pin));
+
+        pio_sm_init(pio, sm, prog_offs, &c);
+        pio_sm_set_enabled(pio, sm, true);      
+    }
+%}
