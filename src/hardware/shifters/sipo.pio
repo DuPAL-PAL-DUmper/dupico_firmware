@@ -11,7 +11,7 @@
 _bitloop:
     pull ifempty block side 0   ; If we have shifted out everything from OSR, pull and block
     out pins, 1 side 0          ; Shift out one bit to the serial pin
-    jmp x-- _bitloop side 1     ; Loop and clock out the pin
+    jmp x-- _bitloop side 1     ; Loop and clock out the bit
 
     ; Clocking out of data completed
     mov x, y side 0             ; Copy again Y to X, so we can begin the loop anew
