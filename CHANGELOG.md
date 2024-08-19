@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.2.2] - 2024-08-19
+### Changed
+- Move handling of OSC_DET request at a lower level
+
 ## [0.2.1] - 2024-08-17
 ### Changed
 - Finish moving SIPO code to PIO. All bitbanging is now gone.

@@ -79,36 +79,20 @@ static void handle_inbound_commands(const command_hub_cmd *cmd, const QueueHandl
                 *hub_status = ERROR;
             }
             break;
-        case CMDH_OSC_DET: {
-                DD_PRINTF("Got a OSC_DET request, count %u\r\n", (cmd->data & 0xFF));
-                uint64_t flipped_pins = 0;
-                uint64_t prev_shft_data = 0;
-                uint8_t tries = cmd->data & 0xFF;
+        case CMDH_OSC_DET:
+            DD_PRINTF("Got a OSC_DET request, count %u\r\n", cmd->data);
 
-                // For this to make sense, we need to try at least twice
-                tries = (tries < 2) ? 2 : tries;
+            xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
+                .cmd = SHF_READ_OSC,
+                .param = cmd->data
+            }), portMAX_DELAY);
 
-                for(uint8_t idx = 0; idx < tries; idx++) {
-                    xQueueSend(shifter_params->cmd_queue, (void*)& ((shifter_io_task_cmd){
-                        .cmd = SHF_READ,
-                        .param = 0
-                    }), portMAX_DELAY);
-
-                    if(xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), portMAX_DELAY) == pdTRUE) {
-                        if(idx > 0) {
-                            flipped_pins |= (shft_data ^ prev_shft_data);
-                        } else {
-                            prev_shft_data = shft_data;
-                        }
-                    } else {
-                        handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_ERROR, 0);
-                        D_PRINTF("Error handling a OSC_DET request!\r\n");
-                        *hub_status = ERROR;
-                        break;
-                    }  
-                }
-
-                if(*hub_status != ERROR) handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_OK, flipped_pins);
+            if(xQueueReceive(shifter_params->resp_queue, (void*)&(shft_data), portMAX_DELAY) == pdTRUE) {
+                handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_OK, shft_data);
+            } else {
+                handle_inbound_commands_simple_response(cmd, resp_queue, CMDH_RESP_ERROR, 0);
+                D_PRINTF("Error handling a OSC_DET request!\r\n");
+                *hub_status = ERROR;
             }
             break;
         case CMDH_WRITE_PINS:

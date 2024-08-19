@@ -11,6 +11,7 @@
 
 typedef enum {
     SHF_READ,
+    SHF_READ_OSC,
     SHF_WRITE,
     SHF_DIE
 } shifter_io_task_cmd_type;

@@ -41,6 +41,15 @@ void shifter_io_task(void *params) {
                     val = piso_shifter_get(&(prms->piso_cfg), pio, piso_sm);
                     xQueueSend(prms->resp_queue, (void*)&val, portMAX_DELAY);
                     break;
+                case SHF_READ_OSC: {
+                        uint64_t first_read = piso_shifter_get(&(prms->piso_cfg), pio, piso_sm);
+                        val = 0;
+                        for (uint16_t idx = 0; idx < cmd.param & 0xFFFF; idx++) { // Cap the iterations at 65k
+                            val |= first_read ^ piso_shifter_get(&(prms->piso_cfg), pio, piso_sm);
+                        }
+                        xQueueSend(prms->resp_queue, (void*)&val, portMAX_DELAY);
+                    }
+                    break;
                 case SHF_DIE:
                 default:
                     keep_going = false;
