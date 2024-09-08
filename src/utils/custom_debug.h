@@ -1,9 +1,9 @@
 #ifndef _CUSTOM_DEBUG_
 #define _CUSTOM_DEBUG_
 
-#include "pico/stdio/driver.h"
-#include "pico/stdio_usb.h"
-#include "pico/stdio_uart.h"
+#include <pico/stdio/driver.h>
+#include <pico/stdio_usb.h>
+#include <pico/stdio_uart.h>
 
 
 void init_print(void);

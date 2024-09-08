@@ -61,6 +61,12 @@
         "string_view": "c",
         "ranges": "c",
         "span": "c",
-        "compare": "c"
+        "compare": "c",
+        "cmd_cxfer.h": "c",
+        "bin_cmd_handler.h": "c",
+        "cmd_handler.h": "c",
+        "string.h": "c",
+        "command_hub_task.h": "c",
+        "stdlib.h": "c"
     }
 }

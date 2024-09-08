@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "pico/stdlib.h"
+#include <pico/stdlib.h>
 
 #include <tasks/command_hub_task.h>
 

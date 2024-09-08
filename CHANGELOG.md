@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.3.0] - 2024-09-08
+### Added
+- Add support for CXFER read mode, for faster reading of combinatorial ICs
+
 ## [0.2.2] - 2024-08-19
 ### Changed
 - Move handling of OSC_DET request at a lower level

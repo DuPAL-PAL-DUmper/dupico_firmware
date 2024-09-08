@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "pico/stdio_uart.h"
-#include "pico/printf.h"
+#include <pico/stdio_uart.h>
+#include <pico/printf.h>
 
 #include <FreeRTOS.h>
 #include <semphr.h>

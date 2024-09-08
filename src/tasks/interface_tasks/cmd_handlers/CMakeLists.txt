@@ -1,3 +1,5 @@
+add_subdirectory(special_modes)
+
 target_sources(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/bin_cmd_handler.c

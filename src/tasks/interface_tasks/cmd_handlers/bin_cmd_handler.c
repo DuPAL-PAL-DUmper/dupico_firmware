@@ -5,8 +5,12 @@
 #include <string.h>
 
 #include <pico.h>
+#include <pico/stdlib.h>
+#include <pico/stdio/driver.h>
 #include <pico/stdio.h>
 #include <pico/stdio_usb.h>
+
+#include "special_modes/cxfer.h"
 
 #include <utils/custom_debug.h>
 #include <utils/binutils.h>
@@ -22,6 +26,7 @@
 #define BIN_CMD_VERSION 0x06
 #define BIN_CMD_SWITCH_PROTO 0x07
 #define BIN_CMD_OSC_DET 0x08
+#define BIN_CMD_CXFER 0x09 // CXFER, Clever Transfer!
 
 #define BIN_CMD_ERROR 0xFF
 
@@ -34,6 +39,7 @@
 #define CMD_VERSION_LEN 2
 #define CMD_SWITCH_PROTO_LEN 3
 #define CMD_OSC_DET_LEN 3
+#define CMD_CXFER_LEN 19 // 1B Command + 1B subcommand + 16B data + 1B checksum
 
 #define RESP_WRITE_LEN 9
 #define RESP_READ_LEN 9
@@ -44,6 +50,7 @@
 #define RESP_VERSION_LEN 11
 #define RESP_SWITCH_PROTO_LEN 2
 #define RESP_OSC_DET_LEN 9
+#define RESP_CXFER_LEN 2
 
 // This map reports the expected length for every command
 const uint8_t __in_flash() CMD_LEN_MAP[] = {
@@ -55,7 +62,8 @@ const uint8_t __in_flash() CMD_LEN_MAP[] = {
     CMD_TEST_LEN,
     CMD_VERSION_LEN,
     CMD_SWITCH_PROTO_LEN,
-    CMD_OSC_DET_LEN
+    CMD_OSC_DET_LEN,
+    CMD_CXFER_LEN
 };
 
 const uint8_t __in_flash() RESP_LEN_MAP[] = {
@@ -67,7 +75,8 @@ const uint8_t __in_flash() RESP_LEN_MAP[] = {
     RESP_TEST_LEN,
     RESP_VERSION_LEN,
     RESP_SWITCH_PROTO_LEN,
-    RESP_OSC_DET_LEN
+    RESP_OSC_DET_LEN,
+    RESP_CXFER_LEN
 };
 
 static inline void reset_handler_config(handler_config* config);
@@ -195,6 +204,10 @@ static uint16_t bin_parse_command(handler_config* config) {
                 .type = CMDH_OSC_DET,
                 .data = config->cmd_buffer[1]
             }), portMAX_DELAY);
+            break;
+        case BIN_CMD_CXFER:
+            cxfer_execute_subcommand(config->cmd_buffer[1], &(config->cmd_buffer[2]), config->queues);
+            response_ready = true;
             break;
         default: 
             reset_handler_config(config);
