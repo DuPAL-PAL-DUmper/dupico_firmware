@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.3.1] - 2024-09-11
+### Changed
+- Tweaked the delays for PISO and SIPO PIO code, for more consistent readings
+
 ## [0.3.0] - 2024-09-08
 ### Added
 - Add support for CXFER read mode, for faster reading of combinatorial ICs

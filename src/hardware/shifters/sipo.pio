@@ -15,8 +15,8 @@ _bitloop:
 
     ; Clocking out of data completed
     mov x, y side 0             ; Copy again Y to X, so we can begin the loop anew
-    set pins, 1 side 0 [1]      ; Toggle srclk to output the data
-    set pins, 0 side 0
+    set pins, 1 side 0 [5]      ; Toggle srclk to output the data
+    set pins, 0 side 0 [5]
     in pins, 1 side 0           ; Output one bit to RX FIFO, just so we can synchronize from outside
 .wrap
 
