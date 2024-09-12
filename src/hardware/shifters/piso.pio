@@ -11,12 +11,12 @@
     set pins,0b1011  [1]    ; Set clock and pe to high
 
 _bitloop:
-    set pins,0b1011 [10]    ; Set clock (and PE) to high
+    set pins,0b1011 [15]    ; Set clock (and PE) to high
     in pins, 1              ; Read the serial input
-    set pins,0b1001 [6]     ; Lower the clock, and delay
+    set pins,0b1001 [15]     ; Lower the clock, and delay
     jmp x-- _bitloop        ; Iterate until the loop count is 0
 
-    set pins,0b1101  [5]    ; Set CE and PE to high, CLK to low
+    set pins,0b1101  [15]    ; Set CE and PE to high, CLK to low
 .wrap
 
 % c-sdk {
