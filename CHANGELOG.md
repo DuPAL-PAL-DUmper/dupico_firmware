@@ -1,7 +1,7 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
-## [0.3.2] - 2024-09-11
+## [0.3.2] - 2024-09-12
 ### Changed
 - Additional increase in the PIO delays so slower ROMs (like a 450ns HN462532G) could be read
 
