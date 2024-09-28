@@ -146,7 +146,7 @@ static uint8_t xfer_read(cxfer_cfg *cfg, command_hub_queues* queues) {
             data = map_value(cfg->data_width, cfg->data_shift_buffer, 0xFFFFFFFFFFFFFFFFULL, cmdh_resp.data.data, true);
             // Send data through serial
             for (uint8_t data_idx = 0; data_idx < data_byte_width; data_idx++) {
-                uint8_t data_b = (data >> (8 * data_idx)) & 0xFF;
+                uint8_t data_b = (data >> (8 * ((data_byte_width - 1) - data_idx))) & 0xFF;
                 checksum += data_b; // Update the checksum
                 putchar_raw(data_b);
             }
