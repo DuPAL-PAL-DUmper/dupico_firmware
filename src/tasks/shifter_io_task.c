@@ -4,6 +4,7 @@
 #include <portmacro.h>
 
 #include <hardware/pio.h>
+#include <pico/time.h>
 
 #include <utils/custom_debug.h>
 
@@ -28,7 +29,7 @@ void shifter_io_task(void *params) {
     uint sipo_offset = pio_add_program(pio, &sipo_program);
     uint sipo_sm = pio_claim_unused_sm(pio, true);
     pio_piso_program_init(pio, piso_sm, piso_offset, 1.0, &(prms->piso_cfg));
-    pio_sipo_program_init(pio, sipo_sm, sipo_offset, 1.0, &(prms->sipo_cfg));
+    pio_sipo_program_init(pio, sipo_sm, sipo_offset, 3.0, &(prms->sipo_cfg));
 
     // Task loop
     while(keep_going) {
@@ -36,6 +37,7 @@ void shifter_io_task(void *params) {
             switch(cmd.cmd) {
                 case SHF_WRITE:
                     sipo_shifter_set(&(prms->sipo_cfg), cmd.param, pio, sipo_sm);
+                    busy_wait_us(150);
                     // We fall into the next case. This is not an error!!!
                 case SHF_READ:
                     val = piso_shifter_get(&(prms->piso_cfg), pio, piso_sm);

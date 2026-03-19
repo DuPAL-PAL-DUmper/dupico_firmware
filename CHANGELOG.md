@@ -1,6 +1,10 @@
 # DuPAL V3 firmware changeog
 Changelog for the DuPAL V3 "dupico" board firmware.
 
+## [0.3.4] - 2026-03-19
+### Changed
+- Testing new timings for PISO/SIPO proposed by Martin Reynolds
+
 ## [0.3.3] - 2024-09-28
 ### Fixed
 - Fixed checksum calculation for data width > 8bit
